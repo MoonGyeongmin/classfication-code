@@ -20,7 +20,7 @@ columns:
     aircraft: aircraft_type  # 파일마다 기종이 하나뿐이면 아래 wuc.gbl_files에서 aircraft를 지정하고 이 값은 비워도 된다
     part_number: part_number
     wuc: wuc
-    name: nomenclature       # 품명(없으면 비워 둔다)
+    name:                    # (선택) 품명 컬럼. 없으면 비워 두고, 그때는 -06 부품명을 대신 쓴다
   # -06 교범에서 뽑은 WUC 목록: WUC -> 부품명 (PN 없음)
   wuc_table:
     aircraft: aircraft_type

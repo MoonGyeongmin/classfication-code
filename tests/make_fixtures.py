@@ -29,11 +29,20 @@ def make_data(path, n=240, seed=0):
     return df
 
 
+# -06 교범의 WUC 목록처럼 WUC와 영문 부품명만 둔다.
+WUC_NAMES = {
+    "51AB0": "DISPLAY, MULTI FUNCTION (MFD)",
+    "45BC0": "LINE, HYDRAULIC PRESSURE",
+    "13CA0": "TIRE, MAIN LANDING GEAR",
+    "71AA0": "PANEL, CAUTION/WARNING LIGHT",
+    "55AA0": "CONNECTOR, ELECTRICAL WIRING HARNESS",
+}
+
+
 def make_refs(dir_):
-    # GBL은 기종별 엑셀 파일로 받는 경우를 흉내 내어 기종 컬럼 없이 만든다.
-    gbl = pd.DataFrame([{"part_number": p[4], "wuc": p[5], "nomenclature": p[0]}
-                        for p in PATTERNS if p[4]]).drop_duplicates(["part_number", "wuc"])
-    table = pd.DataFrame([{"aircraft_type": "FA-50", "wuc": p[5], "wuc_name": p[0]} for p in PATTERNS]).drop_duplicates("wuc")
+    # 실제 GBL처럼 PN과 WUC만 있고, 기종별 파일이라 기종 컬럼도 없다.
+    gbl = pd.DataFrame([{"part_number": p[4], "wuc": p[5]} for p in PATTERNS if p[4]]).drop_duplicates()
+    table = pd.DataFrame([{"aircraft_type": "FA-50", "wuc": w, "wuc_name": n} for w, n in WUC_NAMES.items()])
     gbl.to_excel(dir_ / "gbl.xlsx", index=False)
     table.to_csv(dir_ / "wuc_table.csv", index=False)
 
