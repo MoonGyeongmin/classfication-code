@@ -1,0 +1,22 @@
+# TO 00-20-2 (2019-09-05) 기준 ATC-HMC 조합 규칙.
+# 예측 결과 검증과, 상위 후보 조합 중 규칙에 맞는 쌍을 고르는 데 쓰인다.
+# 실제 현장 관행과 다르면 이 파일만 고치면 된다.
+
+# 이 ATC는 나열된 HMC와만 쓸 수 있다.
+atc_requires_hmc:
+  B: ["672", "799", "812", "948"]   # 부록 E, Bench checked - serviceable
+  H: ["672", "799", "812", "948"]   # 부록 E, Equipment checked - no repair required
+  E: ["799"]                        # 부록 E, Initial installation
+  S: ["800", "803", "804", "805"]   # 부록 E, Remove and Reinstall / Install and Remove
+  T: ["875"]                        # 부록 E, Removed for Cannibalization
+  U: ["875"]                        # 부록 E, Replaced after Cannibalization
+
+# 이 ATC는 나열된 HMC와 쓸 수 없다.
+atc_forbids_hmc:
+  Y: ["799"]                        # 4.19.1.4 Troubleshoot
+
+# 이 HMC는 나열된 ATC와만 쓸 수 있다.
+hmc_requires_atc:
+  "242": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D"]   # 4.21.1.4
+  "374": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D"]   # 4.21.1.4
+  "875": ["T", "U"]                                                               # 부록 E T/U

@@ -1,0 +1,319 @@
+code,type_defect,definition
+001,1,"Faulty Tube, Transistor, or Integrated Circuit"
+002,6,Servicing (may be used with WUC items)
+006,1,"Contacts, Connectors or Connections Defective"
+008,1,Noisy/Chattering
+011,1,Low-Frequency Vibrations
+012,1,Medium-Frequency Vibrations
+013,1,High-Frequency Vibrations
+020,1,"Cut, Worn, Chaffed, Frayed, or Torn"
+025,1,Capacitance Incorrect
+028,1,Conductance Incorrect
+029,1,Current Incorrect
+037,1,"Fluctuates, Unstable, or Erratic"
+051,1,Fails to Tune or Drifts
+064,1,Incorrect Modulation
+065,1,High Voltage or Standing Wave Ratio
+069,2,Flameout
+070,1,Broken
+080,1,"Burned Out or Defective Lamp, Meter or Indicating Device"
+086,2,"Improper Handling, Shipping or Maintenance Damage"
+088,1,Incorrect Gain
+103,1,Attack Display Incorrect
+105,2,"Loose, Damaged, or Missing Hardware (nuts, bolts, screws, clamps, safety-wire, etc.)"
+111,1,Burst or Ruptured
+127,1,Adjustment or Alignment Improper
+135,1,"Binding, Stuck, or Jammed"
+136,1,Damaged/Cracked Fan Stator Case
+137,1,Damaged/Cracked Fan Stator Vanes
+138,1,Fan Blade Damage
+139,1,Cracked or Warped Inlet Guide
+140,1,Frozen Fan
+141,1,Compressor Case Failure or Excessive Air Leakage
+142,1,Compressor Damage Due to Failure or Seizures
+143,1,Damaged/Cracked Compressor Case
+144,1,Compressor Rotor Change (other than FOD)
+145,1,Cracked Diffuser Cases
+146,1,Combustion Case Burn or Hot Spot
+147,1,Combustion Damage
+148,1,Damaged/Cracked Turbine Frame/Case (Burned Through)
+149,1,Flameholder or Fuel Ring/Bars Damaged
+150,1,"Thrown, Damaged or Failed Buckets"
+151,1,Turbine Wheel Failure
+152,1,Turbine Nozzle Failure
+153,1,Turbine Damage Due to Material Failure
+154,1,Engine or Afterburner Fire Damage
+155,1,Engine to A/C Mount Failure
+156,1,Afterburner or Augmentor Problem Repair
+157,1,Thrust Reversor System Failure
+158,1,Accessory Drive Gear Box Failures (Includes turboprop gearbox) (Worn splines)
+159,1,Internal Reduction Gear Failure
+160,1,Bearing and/or Support Failure
+161,1,Bearing Failure (Causing rotor shift/seizure)
+162,1,Scavenger Pump Failure (Includes turboprop gearbox)
+163,1,Engine Decoupled (Turboprop)
+164,1,Propeller Brake Failed (Turboprop)
+165,1,Power Section Failure (Turboprop)
+166,1,Reduction Gear Box Failure (Turboprop)
+167,2,Tension or Torque Incorrect
+168,1,Torque Meter Failure (Turboprop)
+169,1,Voltage Incorrect
+170,1,Corroded Mild/Moderate
+171,1,Impeller or Inducer Damage (Recip only)
+172,1,Slipped Blower Clutch (Recip only)
+173,1,Turbo Supercharger Failure (Induction system contaminated with metal from turbo) (Recip only)
+174,1,QEC Discrepancy
+175,1,Condition Monitoring-Adverse EGT/TIT Trend
+176,1,Condition Monitoring-Adverse RPM Trend
+177,1,High or Low Fuel Consumption
+178,1,Condition Monitoring-Vibration Trend
+179,1,Condition Monitoring-Exhaust Pressure Ratio (EPR) Trend
+180,1,Condition Monitoring-Adverse Oil Consumption Trend
+181,1,Condition Monitoring-Adverse Fuel Flow Trend
+182,1,Condition Monitoring-Performance trend indicates compressor section deterioration or damage
+183,1,Condition Monitoring-Performance trend indicates combustion section deterioration or damage
+184,1,Condition Monitoring-Performance trend indicates turbine section deterioration or damage
+185,1,Condition Monitoring-Performance trend indicates accessory section deterioration
+186,1,Condition Monitoring-Removed for further test cell diagnostic check
+187,1,Condition Monitoring-Borescope indicates compressor section deterioration
+188,1,Condition Monitoring-Borescope indicates combustion section deterioration
+189,1,Condition Monitoring-Borescope indicates turbine section deterioration
+190,1,Cracked
+191,1,High EGT
+192,1,Over Temperature
+193,1,Excessive Stalls
+194,1,High Breather Pressure
+195,1,Exceeding Quality Check Temperature Limit
+196,1,"Excessive Oil From Breather, or High Sump Pressure"
+197,1,Fuel Leakage
+198,2,Contaminated Fuel
+199,1,High or Low Oil Consumption
+200,1,Oil Leakage
+201,2,Contaminated Oil
+202,1,Low Oil Pressure
+203,1,High Oil Pressure
+204,1,Smoke or Fumes in Cockpit
+205,1,Start or Off Idle Stagnation
+206,1,Steady State Stagnation
+207,1,Augmentor Induced Stagnation
+208,1,Augmentor Nozzle Mechanism Deterioration
+209,1,Internal Noise on Shutdown/Start
+210,2,Servicing With Improper Grade or Type of Fuel or Oil
+211,2,Corroded Internal Surfaces
+212,2,Corroded External Surfaces
+213,1,Low Compression (Recip Only)
+214,1,Blow By or Detonation (Recip Only)
+215,1,"Manifold pressure beyond limits, overboost (Recip only)"
+216,1,Low Manifold Pressure (Recip Only)
+217,1,Oil in induction system or compressor section (Recip only)
+218,1,Sudden Stoppage or Reduction or Exceeded Torque Limits (Recip/Turboprop Only)
+219,1,Internal Failure (Recip Only)
+220,1,Loss of Torque (Recip Only)
+221,1,Will not carry load (APU)
+222,1,Engine Shuts Down After Start (APU)
+223,1,Control System Component Malfunction
+224,1,Backup/Emergency Control System Failure
+225,1,Bleed Air Malfunction
+226,1,Engine Start Time Beyond Limits
+227,1,Rear Compressor Variable Vane (RCVV) Geometry Improper/Axial Flutter
+228,1,Compressor Inlet Variable Vane (CIVV) Geometry Improper
+230,2,"Dirty, Contaminated, or Saturated by Foreign Material"
+231,1,Augmentor Blowout
+232,1,Augmentor No Light
+233,1,Augmentor Rumble
+234,1,Turbine Bore Fire
+242,1,Failed to Operate - Specific Reason Unknown.
+253,1,Misfires
+254,1,No Output
+255,1,Incorrect Output
+277,1,Fuel Nozzle/Oil Line Coking
+279,1,Spray Pattern Defective
+290,1,Fails Diagnostic/Automatic Test
+298,6,Domestic Object - No Damage
+299,2,Domestic Object Damage
+300,6,Foreign Object - No Damage
+301,2,Foreign Object Damage (FOD)
+303,2,Damage By Semi-Solid Foreign Object (Birds)
+305,2,Equipment or Material Physically Damaged
+306,1,Equipment or Material Physically Failed
+307,1,Composite Material Defective
+308,1,Improper Operation
+309,1,Electrical Measurements Incorrect
+310,1,Incorrect Navigation Measurement
+311,1,"Damaged or Defective Component (Bulb, Transistor, Integrated Circuit, Fuse, etc.)"
+312,1,Degraded System Performance
+314,1,"Inability to Accelerate, All Power Settings Above Idle"
+315,1,Surges/Fluctuates
+317,1,Hot Starts
+334,1,Temperature Limits Exceeded
+350,1,Insulation Breakdown
+372,1,Metal in Sump/Screen or on MAG Plug
+374,1,Internal Failure
+377,1,Leaking - Class A - Slow Seep (TO 1-1-3)
+378,1,Leaking- Class B - Seep (TO 1-1-3)
+379,1,Leaking - Class C - Heavy Seep (TO 1-1-3)
+380,1,Leaking - Class D - Running Leak (TO 1-1-3)
+381,1,Leaking Internal or External
+382,1,Blocked/Plugged
+383,1,Lock on Malfunction
+410,1,"Lack of, or Improper Lubrication"
+425,1,"Pitted, Nicked, Chipped, Scored, Scratched, or Crazed"
+450,1,Open circuit or wire
+457,1,Oscillating
+458,1,Out of Balance
+464,1,Overspeed
+472,1,Fuse Blown or Defective Circuit Panel/Breaker
+475,1,"Inability to Start, Ground or Air"
+476,2,"Damage By Solid Foreign Objects (Metal, Stone)"
+477,2,Damage By Semi-Solid Foreign Object (Ice)
+478,2,"Damage By Semi-Solid Foreign Objects (Rags, Plastics, Rubber, etc.)"
+479,2,Damage from Simulated Combat (Air to Air/Air to Ground)
+480,2,Damage by Aircraft Accident or Incident
+481,2,Exposure to Fire Extinguishing Agent
+482,2,Excessive ″G″ Force Inspection
+483,6,Dummy Engine Transaction
+484,1,Blade Shingling
+513,1,Compressor Stalls (Afterburner)
+525,1,Pressure Incorrect/Fluctuates
+537,1,Low Power or Thrust
+553,2,"Does Not Meet Specifications, Drawing, or Other Conformance Requirements (Use with ″when discovered″ code Y)"
+561,1,Unable to Adjust to Limits
+567,1,Resistance Incorrect
+580,1,Temperature Sensitive
+583,1,Scope Presentation Incorrect or Faulty
+585,1,Sheared
+599,1,Travel or Extension Incorrect
+602,2,Failed or Damaged Due to Malfunction of Associated Equipment
+607,1,No-Go Indication
+609,1,Out of Track/Fails to Track
+611,1,Set Clearance Plane Violation
+615,1,Shorted
+622,2,Wet/Condensation
+625,1,Gating Incorrect
+626,1,Inductance Incorrect
+627,1,Attenuation Incorrect
+631,1,Gyro Bias Voltage Incorrect
+632,6,"Expended (Thermal Battery, Fire Extinguisher, etc.)"
+635,1,Sensitivity Incorrect
+637,1,Triggering Incorrect
+644,1,Built-in Test (BIT) Indicated Fault
+649,1,Sweep Malfunction
+651,1,Air in System
+652,1,Align Time Excessive
+653,1,Ground Speed Error
+654,1,Terminal Error - CEP Excessive
+655,1,Terminal Error - Range Excessive
+656,1,Terminal Error - Azimuth Excessive
+657,1,Distance Measurement Error (Navigation Equipment)
+658,1,Bearing/Heading Error (Navigation Equipment)
+667,1,Corroded Severe
+669,1,Potting Material Melting (Reversion Process)
+670,1,Erroneous Over ″G″ Indicator
+672,6,Built In Test (BIT) False Alarm
+673,1,Bit Fault Indicator Failure
+674,1,Bit Fault Indicated Wrong Unit
+675,1,"BIT Fault Not Duplicated, Parameters Confirmed by Data"
+676,6,"BIT Fault Not Duplicated on Ground, Parameters Do Not Confirm Fault"
+677,6,No Defect - Unknown System Limitation
+678,1,Internal Self-Protection Circuit Activated
+679,2,Known Deficiency Awaiting Depot Solution
+680,2,Failure Caused by Manufacturer Deficiency
+689,1,Conductive Path Defect/Failure
+690,1,Excessive Vibration or Rough Operation
+691,1,Video Out of Focus
+692,1,Video Faulty
+693,1,Audio Faulty
+694,1,Weak Video
+695,1,Sync Absent or Incorrect
+698,2,"Faulty Card, Tape, Program, or Disk"
+710,1,Bearing Failure or Faulty
+718,1,Improper Response to Mechanical Input
+719,1,Un-Commanded Movement
+721,1,Improper Response to Electrical Input
+730,1,Loose
+731,2,Battle Damage
+750,1,Missing
+752,1,Tape Missing/Defective
+753,6,Tape Removal from FOM
+754,1,Fairing Compound Missing/Defective
+755,1,Gap Filler Missing/Defective
+756,1,Blade Seals Missing/Defective
+757,1,"Outer Mold Line (OML) Paint, Coating Missing/Defective"
+780,1,"Bent, Buckled, Collapsed, Dented, Distorted, or Twisted"
+782,1,Tire Tread Area Defective
+783,1,Tire Sidewall Damaged or Defective
+784,1,Tire Bead Area Damaged or Defective
+785,1,Tire Inside Surface Damaged or Defective
+786,6,No Defect - Tire Tread Normal Wear
+787,6,No Defect - Brake Adjustment Normal Wear
+788,6,No Defect - Failure Caused by Improper Turn On Sequence
+793,6,No Defect - TCTO Kit Received by Base Supply or Parts Are Available in Supply
+796,6,No Defect - TCTO Not Applicable: This is an error code used to tell the IM/SM that this specific piece of equipment should not have been included in the TCTO. This code is not to be used to report compliance
+797,6,No Defect - TCTO previously complied with
+798,6,No Defect - TCTO complied with by record check or inspection. No modification required
+799,6,No Defect
+800,6,"No Defect - Component removed/reinstalled. This includes circuit breakers pulled and fuses removed during troubleshooting or to Facilitate Other Maintenance (FOM) (includes disconnect/connection of electrical wires, hydraulic lines, and opening/closing doors etc.)"
+801,6,"No Defect - TCTO complied with, all applicable operations completed"
+802,6,No Defect - Partial TCTO compliance
+803,6,"No Defect - Equipment installed and removed to FOM. This includes safety devices/ locks, warning tags, AGE and test/diagnostic equipment. Not to be used to document the installation and removal of serially controlled items or to record aircraft configuration changes. Used with Action Taken Code S."
+804,6,"No Defect - Removed for scheduled maintenance, modification or reliability assessment."
+805,6,No Defect - Pre/Post Alert Reprogramming
+806,6,No Defect - Routine/Emergency/Special Reprogramming
+808,6,No Defect - ″B″ Plug Combination Change
+812,6,No Defect - Indicated Defect Caused By Associated Equipment Malfunction
+813,6,No Defect - Indicated Defect Caused by Associated Software/Key Code Failure
+816,1,Impedance Incorrect
+824,1,Gyro Precesses
+842,1,"Voids, (Composites Structure)"
+843,1,Unbonded Defects in Bonded Joint (All Structures)
+844,1,"Hole Wear, Out of Round (Composite Structures)"
+846,1,Delaminated; Separation of Laminated Layers (Composite Structure)
+847,1,"Abrasions, Erosion, Pits (Composites)"
+848,1,Missing and Loose Fibers (Composites)
+849,1,Chemical Imbalances (Composites)
+865,1,Deteriorated (For protective coating/sealing defective; use with action taken code Z.)
+866,6,"Expiration of maximum time, (TO directed)"
+867,6,Transfer Time Limit (TO 2-1-18)
+868,6,Removed/rolled back for failed external engine component reinstalled in same aircraft
+870,6,"Removal for Research, Test, or Diagnostic Event"
+872,6,Removal During Aircraft Programmed Depot Maintenance
+874,2,Storage Damage or Deterioration
+875,6,Removal for or Replacement after (Cannibalization)
+876,6,Non-Technical Order Directed Removal/Removal for Reconfiguration
+877,6,TO-Identified Components
+878,6,"Removal to perform scheduled/special inspection (PE, HSI, etc., - TO-directed)."
+879,6,"Expiration of maximum cycles/sorties for engines, modules or components (TO- directed)"
+880,6,Opportunistic maintenance removal (modules and tracked components approaching TO limits).
+881,6,Removal to Perform Minor Inspection (Borescope -TO-directed)
+884,1,Lead Broken
+890,2,Lightning Strike Damage
+900,1,Burned or Overheated
+901,1,Intermittent
+911,6,"TCTO not complied with, TCTO complied with in error, or placed in work in error."
+916,1,Joint Oil Analysis Program (JOAP) Removal
+917,1,Impending Failure or Latent Defect Indicated by NDI
+921,6,"No Defect. Item Has Been Rebuilt, Refurbished, been replaced (consumable item) or Has Had Parts Replaced Because of Technical Order (Time Change) Requirements (To be used with Action Taken repair code G, or R, P, and Q for Time Change)"
+932,1,"Does Not Engage, Lock, or Unlock Correctly"
+939,1,Unable to Load Program
+940,1,Failure of Application Software
+941,1,Non-programmed Halt
+942,2,Illegal Operation or Address
+943,1,Data Error
+944,6,Update or Verification of Program/Software Load
+948,2,Operator Error
+949,1,Computer Memory Error/Defect
+956,1,Computer Equipment Malfunction
+957,1,No Display
+959,1,Fails to Transfer to Redundant Equipment
+962,1,Low Power (Electrical)
+964,1,Poor Spectrum
+969,1,Cannot Resonate Input Cavity
+972,1,Damaged Probe
+974,1,Does Not Track Tuning Curve
+982,1,Frozen Tuning Mechanism
+987,1,Input/Output Pulse Distortion
+988,1,Loss of Vacuum
+989,1,Low Coolant Flow Rate
+991,1,"Frequency Out of Band, Unstable, or Incorrect"
+995,1,EMP Protection Material Defective
+996,1,Radar Absorption Material Defective

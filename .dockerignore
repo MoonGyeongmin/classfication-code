@@ -1,0 +1,6 @@
+.git
+dist
+data
+work
+models
+**/__pycache__

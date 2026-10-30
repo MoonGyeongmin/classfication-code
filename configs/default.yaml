@@ -1,0 +1,83 @@
+# 경로는 컨테이너 안 기준이다(docker/run.sh가 /data, /models, /work를 마운트).
+
+# ==================================================================
+# 컬럼명 설정: 엑셀/CSV의 실제 컬럼명은 모두 여기서만 바꾼다.
+# 왼쪽 키(id, aircraft ...)는 코드가 쓰는 이름이니 그대로 두고, 오른쪽 값만 고친다.
+# ==================================================================
+columns:
+  # 정비이력 데이터(학습 파일, 예측할 파일 공통)
+  data:
+    id: record_id            # 없으면 비워 두면 행 번호를 쓴다
+    aircraft: aircraft_type  # 기종
+    defect: defect_text      # 결함 내용
+    action: action_text      # 정비(조치) 내용
+    part_number: part_number # 결함품 PN
+    hmc: hmc                 # 학습 데이터에만 필요
+    atc: atc
+    wuc: wuc
+  # GBL(General Breakdown List) 엑셀: PN -> WUC
+  gbl:
+    aircraft: aircraft_type  # 파일마다 기종이 하나뿐이면 아래 wuc.gbl_files에서 aircraft를 지정하고 이 값은 비워도 된다
+    part_number: part_number
+    wuc: wuc
+    name: nomenclature       # 품명. 없으면 비워 두고, 그때는 -06 부품명을 대신 쓴다
+  # -06 교범에서 뽑은 WUC 목록: WUC -> 부품명 (PN 없음)
+  wuc_table:
+    aircraft: aircraft_type
+    wuc: wuc
+    name: wuc_name
+
+codebook_dir: codebook
+
+model:
+  encoder: /models/bge-m3
+  max_length: 256
+
+train:
+  train_file: /data/train/fa50_ko.xlsx
+  augment_files: []        # 예: [/data/train/fa50_aug.xlsx] (mcc translate 결과)
+  output_dir: /work/models/hmc_atc
+  epochs: 5
+  batch_size: 32
+  lr: 2.0e-5
+  head_lr: 1.0e-3
+  warmup_ratio: 0.06
+  val_ratio: 0.1
+  label_smoothing: 0.05
+  seed: 42
+
+translate:
+  llm: /models/Qwen2.5-32B-Instruct
+  langs: [en, pl, th, tl]
+  tensor_parallel: 1
+  max_model_len: 4096
+  max_tokens: 512
+  temperature: 0.3
+
+predict:
+  batch_size: 128
+  top_k: 3
+  review_threshold: 0.6    # HMC/ATC 신뢰도 중 하나라도 이보다 낮으면 검토 대상
+  apply_rules: true        # codebook/rules.yaml의 ATC-HMC 조합 규칙 적용
+
+wuc:
+  enabled: false           # GBL / -06 WUC 테이블을 준비한 뒤 true
+  embedder: /models/bge-m3
+  top_k: 3
+  # 파일 여러 개 가능. aircraft를 적으면 그 파일 전체를 해당 기종으로 본다. sheet는 생략하면 첫 시트.
+  gbl_files: []
+  #  - {path: /data/ref/gbl_fa50.xlsx, aircraft: FA-50}
+  #  - {path: /data/ref/gbl_t50.xlsx, aircraft: T-50, sheet: GBL}
+  wuc_table_files: []
+  #  - {path: /data/ref/wuc_fa50.xlsx, aircraft: FA-50}
+  # 데이터의 기종명이 참고자료에 없을 때 대신 찾아볼 기종
+  aircraft_alias:
+    TA-50: [T-50]
+    T-50B: [T-50]
+    TA-50BLK2: [TA-50, T-50]
+    FA-50GF: [FA-50]
+    FA-50PL: [FA-50]
+    T-50TH: [T-50]
+    T-50I: [T-50]
+    KA-1: [KT-1]
+    KT-1S: [KT-1]
