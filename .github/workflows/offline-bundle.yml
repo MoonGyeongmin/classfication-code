@@ -1,0 +1,62 @@
+# 폐쇄망 반입 파일을 GitHub Releases에 올린다(Actions 탭 > offline-bundle > Run workflow).
+# 2GB 자산 제한 때문에 큰 파일은 1900MB 조각으로 나누고, 폐쇄망에서 docker/install_bundle.sh로 합친다.
+name: offline-bundle
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 릴리스 태그
+        default: offline-v0.1.0
+      encoder:
+        description: 인코더(허깅페이스 저장소)
+        default: BAAI/bge-m3
+      llm:
+        description: 번역 LLM(비우면 생략)
+        default: ""
+
+permissions:
+  contents: write
+
+env:
+  IMAGE: mcc:0.1.0
+  GH_TOKEN: ${{ github.token }}
+  TAG: ${{ inputs.tag }}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 디스크 확보
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache /usr/local/share/boost
+          docker system prune -af
+          df -h /
+
+      - name: 릴리스 만들기
+        run: |
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "$TAG 폐쇄망 반입 파일" --notes "docker/install_bundle.sh 사용법은 README 참고. 커밋 ${GITHUB_SHA::7}"
+          gh release upload "$TAG" docker/install_bundle.sh --clobber
+
+      - name: 이미지 빌드
+        run: docker build -f docker/Dockerfile --build-arg BASE_IMAGE=mirror.gcr.io/nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04 -t "$IMAGE" .
+
+      - name: 이미지 업로드
+        run: |
+          mkdir dist && name=${IMAGE/:/_}.tar.gz
+          docker save "$IMAGE" | gzip | split -b 1900M - "dist/$name.part-"
+          docker rmi "$IMAGE" && docker builder prune -af
+          ( cd dist && sha256sum * > ../SHA256SUMS.image )
+          for f in dist/*; do gh release upload "$TAG" "$f" --clobber && rm "$f"; done
+          gh release upload "$TAG" SHA256SUMS.image --clobber
+
+      - name: 모델 업로드
+        env:
+          ENCODER: ${{ inputs.encoder }}
+          LLM: ${{ inputs.llm }}
+        run: |
+          pip install -q huggingface_hub==0.27.0
+          python docker/release_model.py "$ENCODER" "$(basename "$ENCODER")" "$TAG"
+          if [ -n "$LLM" ]; then python docker/release_model.py "$LLM" "$(basename "$LLM")" "$TAG"; fi
