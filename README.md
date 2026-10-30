@@ -11,7 +11,7 @@
 | WUC | 학습 없이 검색. ① GBL에서 결함품 PN 조회 → ② 없으면 결함·조치 텍스트와 -06 부품명의 의미 유사도 | GBL 엑셀, -06 WUC 목록 |
 
 - **다국어 대응**: 다국어 인코더는 한국어로만 학습해도 영어·폴란드어·태국어·필리핀어 입력을 어느 정도 이해한다.
-  여기에 더해 `mcc translate`가 로컬 LLM(기본 Qwen2.5-32B-Instruct)으로 한국어 학습 데이터를 다른 언어로 번역해 학습에 넣는다.
+  여기에 더해 `mcc translate`가 사내 LLM API(LiteLLM의 Qwen 등)로 한국어 학습 데이터를 다른 언어로 번역해 학습에 넣는다.
   검증셋 원문의 번역본은 학습에서 빼고 **언어별 검증 점수**를 내는 데 쓴다.
 - **TO 규칙 검증**: `codebook/rules.yaml`의 ATC-HMC 조합 규칙(예: ATC H는 HMC 672/799/812/948만)에 어긋나면
   상위 후보 중 규칙에 맞는 조합으로 바꾸고 `rule_flags`에 사유를 남긴다.
@@ -65,6 +65,28 @@ nvidia-smi                                                                    # 
 bash docker/run.sh --help
 ```
 
+### 폐쇄망에 이미 LiteLLM(Qwen, bge-m3)이 있는 경우
+
+번역 LLM은 반입할 필요가 없다. `configs/default.yaml`의 `translate.api`에 LiteLLM 주소와 모델 이름을 적고,
+키는 파일에 적지 말고 실행할 때 환경 변수로 넘긴다.
+
+```yaml
+translate:
+  backend: api
+  api:
+    base_url: http://<LiteLLM 주소>:4000/v1
+    model: <LiteLLM에 등록된 Qwen 모델 이름>
+```
+```bash
+LITELLM_API_KEY=sk-... bash docker/run.sh translate --input /data/train/fa50_ko.xlsx --output /data/train/fa50_aug.xlsx
+# LiteLLM이 같은 서버에 있으면 DOCKER_NETWORK=host 를 앞에 붙이고 base_url을 http://localhost:4000/v1 로 둔다
+```
+
+**HMC/ATC 학습에는 bge-m3 가중치 파일이 직접 필요하다.** API는 문장 임베딩만 돌려줄 뿐 모델을 다시 학습시킬 수 없기 때문이다.
+서버에 이미 있는 bge-m3 폴더(`config.json`, `model.safetensors` 또는 `pytorch_model.bin`, `tokenizer.json`/`sentencepiece.bpe.model`이 든 폴더)를
+`MODELS_DIR`로 마운트하고 `model.encoder` 경로를 맞추면 따로 반입하지 않아도 된다.
+WUC 유사도 검색의 임베딩은 `wuc.embed_backend: api`로 바꾸면 LiteLLM의 bge-m3를 쓸 수도 있다.
+
 ## 3. 데이터 준비
 
 **컬럼명은 `configs/default.yaml` 맨 위 `columns:` 한곳에서만 바꾼다.** 왼쪽 키는 그대로 두고 오른쪽 값을 실제 엑셀 컬럼명으로 고치면 된다.
@@ -84,8 +106,8 @@ bash docker/run.sh --help
 ## 4. 실행
 
 ```bash
-# (선택) 번역 증강: 학습 데이터를 en/pl/th/tl로 번역. H200 1장 기준 수 시간 이내 예상
-bash docker/run.sh translate --input /data/train/fa50_ko.xlsx --output /data/train/fa50_aug.xlsx
+# (선택) 번역 증강: 학습 데이터를 en/pl/th/tl로 번역. 키는 LITELLM_API_KEY 환경 변수로
+LITELLM_API_KEY=sk-... bash docker/run.sh translate --input /data/train/fa50_ko.xlsx --output /data/train/fa50_aug.xlsx
 #   -> configs의 train.augment_files에 /data/train/fa50_aug.xlsx 추가
 
 # 학습: /work/models/hmc_atc 에 최고 모델과 history.csv(에폭별·언어별 정확도) 저장

@@ -4,6 +4,7 @@
 2) GBL에 없으면 결함/조치 텍스트와 -06 WUC 명칭의 임베딩 유사도로 후보를 찾는다.
 """
 import logging
+import os
 import re
 
 import numpy as np
@@ -68,11 +69,37 @@ class Embedder:
         return np.concatenate(out) if out else np.zeros((0, 1))
 
 
+class ApiEmbedder:
+    """OpenAI 호환 /v1/embeddings로 임베딩을 받는다(LiteLLM에 올라간 bge-m3 등)."""
+
+    def __init__(self, api):
+        from openai import OpenAI
+
+        key = os.environ.get(api.get("api_key_env", "LITELLM_API_KEY"), "")
+        if not key:
+            raise RuntimeError(f"환경 변수 {api.get('api_key_env', 'LITELLM_API_KEY')}에 API 키를 넣어 주세요.")
+        self.client = OpenAI(base_url=api["base_url"], api_key=key, timeout=api.get("timeout", 120),
+                             max_retries=api.get("max_retries", 3))
+        self.model = api["model"]
+        self.batch_size = api.get("batch_size", 64)
+
+    def __call__(self, texts):
+        out = []
+        for s in range(0, len(texts), self.batch_size):
+            r = self.client.embeddings.create(model=self.model, input=texts[s:s + self.batch_size])
+            out.extend(d.embedding for d in sorted(r.data, key=lambda d: d.index))
+        v = np.asarray(out, dtype=np.float32).reshape(len(texts), -1)
+        return v / np.clip(np.linalg.norm(v, axis=1, keepdims=True), 1e-9, None)
+
+
 class WucMatcher:
     def __init__(self, cfg):
         w = cfg["wuc"]
         self.top_k = w.get("top_k", 3)
-        self.embed = Embedder(w.get("embedder") or cfg["model"]["encoder"])
+        if w.get("embed_backend", "local") == "api":
+            self.embed = ApiEmbedder(w["embed_api"])
+        else:
+            self.embed = Embedder(w.get("embedder") or cfg["model"]["encoder"])
 
         self.table = load_refs(w.get("wuc_table_files"), cfg["columns"]["wuc_table"], ["aircraft", "wuc", "name"])
         self.table = self.table.drop_duplicates(["aircraft", "wuc"]).reset_index(drop=True)
