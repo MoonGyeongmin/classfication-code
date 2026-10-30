@@ -1,0 +1,11 @@
+# 폐쇄망 이미지(CUDA 12.4, Python 3.10)용 고정 버전. vllm이 torch 2.5.1(cu124)을 함께 설치한다.
+vllm==0.6.6.post1
+torch==2.5.1
+transformers==4.47.1
+tokenizers==0.21.0
+scikit-learn==1.5.2
+pandas==2.2.3
+openpyxl==3.1.5
+PyYAML==6.0.2
+huggingface_hub==0.27.0
+pytest==8.3.4

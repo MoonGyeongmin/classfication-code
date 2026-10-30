@@ -1,0 +1,5 @@
+# [폐쇄망] 주기 실행 예시: 매일 06:00에 inbox 폴더의 새 파일을 예측하고 요약 보고서를 만든다.
+# crontab -e 로 아래 줄을 추가한다(경로는 저장소 위치에 맞게 수정).
+# 결과: /srv/mcc/work/out/<날짜시각>/<파일명>_pred.xlsx, <파일명>_summary.xlsx
+# 처리한 원본은 /srv/mcc/data/inbox/processed/<날짜시각>/ 으로 옮겨진다.
+0 6 * * * cd /opt/classfication-code && bash docker/run.sh batch --inbox /data/inbox --outbox /work/out >> /srv/mcc/work/batch.log 2>&1
