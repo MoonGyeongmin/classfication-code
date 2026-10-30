@@ -2,6 +2,7 @@
 # [인터넷 PC] 이미지 빌드 + 모델 다운로드 후 반입용 파일을 dist/에 만든다.
 #   bash docker/build_offline.sh            # 이미지 + 인코더 + 번역 LLM
 #   SKIP_LLM=1 bash docker/build_offline.sh # 번역 LLM 제외
+#   선택: BASE_IMAGE=<미러 주소>(Docker Hub 요청 제한 시), CA_CERT=<사내 프록시 인증서>
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -11,11 +12,13 @@ LLM=${LLM:-Qwen/Qwen2.5-32B-Instruct}
 DIST=${DIST:-dist}
 mkdir -p "$DIST/models"
 
-docker build -f docker/Dockerfile -t "$IMAGE" .
+docker build -f docker/Dockerfile ${BASE_IMAGE:+--build-arg BASE_IMAGE="$BASE_IMAGE"} \
+  ${CA_CERT:+--secret id=ca_cert,src="$CA_CERT"} -t "$IMAGE" .
 docker save "$IMAGE" | gzip > "$DIST/${IMAGE/:/_}.tar.gz"
 
 download() {  # $1: HF 저장소, $2: 저장 폴더명
-  docker run --rm -e HF_HUB_OFFLINE=0 -v "$PWD/$DIST/models:/models" --entrypoint python "$IMAGE" -c \
+  docker run --rm -e HF_HUB_OFFLINE=0 \
+    ${CA_CERT:+-v "$CA_CERT:/ca.crt:ro" -e REQUESTS_CA_BUNDLE=/ca.crt -e SSL_CERT_FILE=/ca.crt} -v "$PWD/$DIST/models:/models" --entrypoint python "$IMAGE" -c \
     "from huggingface_hub import snapshot_download as d; d('$1', local_dir='/models/$2', allow_patterns=['*.json','*.safetensors','*.model','*.txt','*.py','tokenizer*'])"
 }
 download "$ENCODER" "$(basename "$ENCODER")"
