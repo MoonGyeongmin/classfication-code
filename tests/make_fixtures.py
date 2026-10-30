@@ -40,8 +40,9 @@ WUC_NAMES = {
 
 
 def make_refs(dir_):
-    # 실제 GBL처럼 PN과 WUC만 있고, 기종별 파일이라 기종 컬럼도 없다.
-    gbl = pd.DataFrame([{"part_number": p[4], "wuc": p[5]} for p in PATTERNS if p[4]]).drop_duplicates()
+    # 실제 GBL처럼 PN, WUC, 품명이 있고, 기종별 파일이라 기종 컬럼은 없다.
+    gbl = pd.DataFrame([{"part_number": p[4], "wuc": p[5], "nomenclature": WUC_NAMES[p[5]]}
+                        for p in PATTERNS if p[4]]).drop_duplicates()
     table = pd.DataFrame([{"aircraft_type": "FA-50", "wuc": w, "wuc_name": n} for w, n in WUC_NAMES.items()])
     gbl.to_excel(dir_ / "gbl.xlsx", index=False)
     table.to_csv(dir_ / "wuc_table.csv", index=False)

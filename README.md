@@ -55,7 +55,7 @@ bash docker/run.sh --help
 | 파일 | 기본 컬럼 | 비고 |
 |---|---|---|
 | 정비이력 (학습/예측) | record_id, aircraft_type, defect_text, action_text, part_number, hmc, atc, wuc | 예측 파일에는 hmc/atc/wuc가 없어도 된다 |
-| GBL 엑셀 | part_number, wuc (+ 선택: aircraft_type, 품명) | 기종별 파일이면 `wuc.gbl_files`에 `aircraft`를 적고 기종 컬럼은 없어도 된다 |
+| GBL 엑셀 | part_number, wuc, nomenclature(품명) (+ 선택: aircraft_type) | 기종별 파일이면 `wuc.gbl_files`에 `aircraft`를 적고 기종 컬럼은 없어도 된다 |
 | -06 WUC 목록 | aircraft_type, wuc, wuc_name | IETM의 WUC와 부품명(예: TIRE, MAIN LANDING GEAR)을 엑셀로 옮긴 것. PN은 필요 없다 |
 
 - HMC는 엑셀에서 숫자로 저장돼 앞자리 0이 빠져도(`20` → `020`) 자동으로 복원한다.
