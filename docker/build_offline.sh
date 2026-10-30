@@ -11,7 +11,7 @@ LLM=${LLM:-Qwen/Qwen2.5-32B-Instruct}
 DIST=${DIST:-dist}
 mkdir -p "$DIST/models"
 
-docker build -f docker/Dockerfile -t "$IMAGE" .
+docker build -f docker/Dockerfile ${BASE_IMAGE:+--build-arg BASE_IMAGE="$BASE_IMAGE"} -t "$IMAGE" .
 docker save "$IMAGE" | gzip > "$DIST/${IMAGE/:/_}.tar.gz"
 
 download() {  # $1: HF 저장소, $2: 저장 폴더명
