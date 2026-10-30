@@ -45,6 +45,16 @@ bash docker/build_offline.sh        # dist/ 에 이미지(.tar.gz), models.tar, 
 둘 다 환경 변수로 앞에 붙인다. 예) `BASE_IMAGE=... CA_CERT=... SKIP_LLM=1 bash docker/build_offline.sh`
 이 저장소 폴더도 함께 반입한다(설정 파일과 실행 스크립트를 쓰기 때문).
 
+### 회사 PC에서 개발 환경 없이 받기 (GitHub Releases)
+
+사내 PC에 Docker나 허깅페이스 접속이 없으면 GitHub Actions가 대신 빌드해 Releases에 올린다.
+
+1. 저장소 Actions 탭 > `offline-bundle` > Run workflow (번역 LLM이 필요하면 `llm`에 `Qwen/Qwen2.5-32B-Instruct` 입력)
+2. 끝나면 Releases의 `offline-v0.1.0`에서 파일을 **전부** 한 폴더로 받는다(2GB 제한 때문에 `.part-aa`, `-ab` … 조각으로 나뉨)
+3. 그 폴더째 폐쇄망으로 반입해서 `bash install_bundle.sh` → 체크섬 확인, 조각 합치기, `docker load`, `/srv/mcc/models`에 모델 배치까지 한다
+
+이미지 약 5.7GB(조각 4개) + BGE-M3 약 2.3GB. LLM을 넣으면 Qwen2.5-32B 약 65GB가 더해진다.
+
 ## 2. 폐쇄망에 설치
 
 ```bash
