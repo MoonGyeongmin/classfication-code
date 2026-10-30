@@ -34,8 +34,15 @@ tests/          가짜 데이터와 아주 작은 모델로 전체 흐름을 검
 ```bash
 bash docker/build_offline.sh        # dist/ 에 이미지(.tar.gz), models.tar, SHA256SUMS 생성
 ```
-이미지는 약 15GB, 모델은 BGE-M3 약 2.3GB + Qwen2.5-32B 약 65GB다. 번역 LLM이 너무 크면
-`LLM=Qwen/Qwen2.5-14B-Instruct bash docker/build_offline.sh` 처럼 바꾸거나 `SKIP_LLM=1`로 뺀다.
+이미지는 디스크에서 약 16GB, 반입 파일(.tar.gz)로 약 5.7GB다. 모델은 BGE-M3 약 2.3GB + Qwen2.5-32B 약 65GB다.
+번역 LLM이 너무 크면 `LLM=Qwen/Qwen2.5-14B-Instruct bash docker/build_offline.sh` 처럼 바꾸거나 `SKIP_LLM=1`로 뺀다.
+빌드 PC에는 디스크 여유가 40GB 이상(LLM 포함 시 110GB 이상) 있어야 한다.
+
+빌드가 막힐 때:
+- Docker Hub `429 Too Many Requests` → `BASE_IMAGE=mirror.gcr.io/nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04`
+- pip/허깅페이스 `CERTIFICATE_VERIFY_FAILED`(사내 프록시) → `CA_CERT=/경로/사내CA.crt`
+
+둘 다 환경 변수로 앞에 붙인다. 예) `BASE_IMAGE=... CA_CERT=... SKIP_LLM=1 bash docker/build_offline.sh`
 이 저장소 폴더도 함께 반입한다(설정 파일과 실행 스크립트를 쓰기 때문).
 
 ## 2. 폐쇄망에 설치
