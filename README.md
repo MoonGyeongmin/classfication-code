@@ -103,6 +103,11 @@ bash docker/run.sh batch --inbox /data/inbox --outbox /work/out
 docker run --rm --entrypoint python mcc:0.1.0 -m pytest -q tests   # 폐쇄망에서도 외부 모델 없이 돈다
 ```
 
+가짜 데이터로 전체 흐름을 돌려 입력·출력 엑셀을 직접 보려면:
+```bash
+docker run --rm -v /srv/mcc/work:/work --entrypoint python mcc:0.1.0 scripts/demo.py /work/demo /work/demo_tmp
+```
+
 ## 알려진 한계
 
 - 다른 언어의 성능은 번역본 검증셋으로 추정한 값이다. 실제 현지 기록으로 일부라도 라벨을 확인해 점검하는 것이 좋다.

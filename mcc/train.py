@@ -63,6 +63,7 @@ def evaluate(model, df, tokenizer, cfg, device):
         out[f"{k}_acc"] = accuracy_score(gold, pred)
         out[f"{k}_top3"] = float((top3 == gold[:, None]).any(1).mean())
         out[f"{k}_macro_f1"] = f1_score(gold, pred, average="macro", labels=np.unique(gold))
+        out[f"{k}_nll"] = float(-np.log(p[np.arange(len(gold)), gold].clamp(min=1e-9).numpy()).mean())
     return out
 
 
@@ -95,7 +96,9 @@ def run(cfg):
     weights = {}
     for k in TASKS:
         cnt = train_df[k].value_counts().reindex(label_maps[k]).fillna(0).values
-        w = 1.0 / np.sqrt(np.maximum(cnt, 1))
+        # 학습 데이터에 없는 코드는 가중치 0. 0이 아니면 label smoothing 항이 그 코드들 쪽으로 확률을 끌어가
+        # 모든 예측의 신뢰도가 낮아진다.
+        w = np.where(cnt > 0, 1.0 / np.sqrt(np.maximum(cnt, 1)), 0.0)
         weights[k] = torch.tensor(w / w[cnt > 0].mean(), dtype=torch.float, device=device)
 
     params = [
@@ -128,8 +131,8 @@ def run(cfg):
         scores = {lang: evaluate(model, v, tokenizer, cfg, device) for lang, v in val_sets.items() if len(v)}
         history.append({"epoch": epoch, **{f"{lang}/{m}": s for lang, d in scores.items() for m, s in d.items()}})
         log.info("epoch %d 검증: %s", epoch, history[-1])
-        # 모든 언어 검증셋의 HMC+ATC 정확도 평균으로 최고 모델을 고른다.
-        score = np.mean([d["hmc_acc"] + d["atc_acc"] for d in scores.values()])
+        # 모든 언어 검증셋의 HMC+ATC 정확도 평균으로 최고 모델을 고르고, 같으면 검증 손실(NLL)이 낮은 쪽을 고른다.
+        score = np.mean([d["hmc_acc"] + d["atc_acc"] - 1e-3 * (d["hmc_nll"] + d["atc_nll"]) for d in scores.values()])
         if score > best:
             best = score
             model.save(tcfg["output_dir"], tokenizer, {"epoch": epoch, "scores": scores,
