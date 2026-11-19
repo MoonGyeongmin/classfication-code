@@ -47,10 +47,19 @@ train:
   seed: 42
 
 translate:
-  llm: /models/Qwen2.5-32B-Instruct
-  langs: [en, pl, th, tl]
+  # api: 사내 LiteLLM 등 OpenAI 호환 API 호출(권장) / vllm: 이 컨테이너에서 모델을 직접 띄움
+  backend: api
+  api:
+    base_url: http://litellm:4000/v1   # LiteLLM 주소(끝에 /v1)
+    api_key_env: LITELLM_API_KEY       # 키는 파일에 적지 않고 이 이름의 환경 변수로 넘긴다
+    model: qwen2.5-32b                 # LiteLLM에 등록된 모델 이름
+    concurrency: 8                     # 동시에 보내는 요청 수
+    timeout: 120
+    max_retries: 3
+  llm: /models/Qwen2.5-32B-Instruct    # backend: vllm 일 때만 사용
   tensor_parallel: 1
   max_model_len: 4096
+  langs: [en, pl, th, tl]
   max_tokens: 512
   temperature: 0.3
 
@@ -62,7 +71,14 @@ predict:
 
 wuc:
   enabled: false           # GBL / -06 WUC 테이블을 준비한 뒤 true
+  # local: /models의 bge-m3를 직접 사용 / api: LiteLLM의 임베딩 모델 호출
+  embed_backend: local
   embedder: /models/bge-m3
+  embed_api:
+    base_url: http://litellm:4000/v1
+    api_key_env: LITELLM_API_KEY
+    model: bge-m3
+    batch_size: 64
   top_k: 3
   # 파일 여러 개 가능. aircraft를 적으면 그 파일 전체를 해당 기종으로 본다. sheet는 생략하면 첫 시트.
   gbl_files: []
