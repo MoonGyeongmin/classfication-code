@@ -1,0 +1,30 @@
+# 허깅페이스 모델 하나만 Releases에 올린다(이미지 빌드 없이). 클라우드 검증용 작은 Qwen 등.
+# Actions 탭 > model-release > Run workflow. 받은 파일은 install_bundle.sh가 /srv/mcc/models/<이름>에 둔다.
+name: model-release
+
+on:
+  workflow_dispatch:
+    inputs:
+      repo:
+        description: 허깅페이스 저장소
+        default: Qwen/Qwen2.5-0.5B-Instruct
+      tag:
+        description: 릴리스 태그
+        default: test-models
+
+permissions:
+  contents: write
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ inputs.tag }}
+      REPO: ${{ inputs.repo }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --prerelease --title "$TAG 검증용 모델" --notes "검증용 모델 파일. 폐쇄망 반입용 아님."
+          pip install -q huggingface_hub==0.27.0
+          python docker/release_model.py "$REPO" "$(basename "$REPO")" "$TAG"
