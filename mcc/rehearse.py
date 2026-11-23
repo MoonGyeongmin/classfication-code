@@ -63,8 +63,11 @@ def run(cfg, out, full=False):
     total = 5
 
     step(1, total, "점검 (mcc doctor --deep)")
-    if doctor.run(r, deep=True):
-        raise MccError("E99", "doctor에서 오류가 나서 리허설을 멈춤. 위의 [E..] 줄을 보세요")
+    pre = dict(r, train=dict(r["train"], augment_files=[]))  # 번역 결과는 2단계에서 생기므로 점검에서는 뺀다
+    rep = doctor.Report()
+    if doctor.run(pre, deep=True, report=rep):
+        first = next(c for c in rep.codes if c.startswith("E"))
+        raise MccError(first, "점검에서 막혀 리허설을 멈춤. 위의 [E..] 줄 참고")
 
     step(2, total, "번역 증강 (가짜 OpenAI 호환 API, en/th)")
     src = pd.read_excel(fx / "train.xlsx", dtype=str)

@@ -181,8 +181,8 @@ def check_api(label, api, want_model, r):
     r.ok(f"{label}: {api['base_url']} 연결, 모델 {want_model} 있음")
 
 
-def run(cfg, deep=False, offline=False):
-    r = Report()
+def run(cfg, deep=False, offline=False, report=None):
+    r = report or Report()
     print("== mcc doctor", flush=True)
     r.check("packages", check_packages)
     if "E10" in r.codes:

@@ -81,3 +81,12 @@ def test_cli_prints_code_line(tmp_path):
 def test_codes_documented():
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     assert all(f"| {c} |" in readme for c in CODES), [c for c in CODES if f"| {c} |" not in readme]
+
+
+def test_rehearse(tmp_path, monkeypatch):
+    """설치 검증 명령이 끝까지 돌고 결과 엑셀 6개를 만든다(작은 가짜 인코더만 있는 환경)."""
+    from mcc import rehearse
+    cfg, fx = _cfg(tmp_path)
+    monkeypatch.delenv("LITELLM_API_KEY", raising=False)
+    rehearse.run(cfg, tmp_path / "rh")
+    assert len(list((tmp_path / "rh/결과").glob("*.xlsx"))) == 6
