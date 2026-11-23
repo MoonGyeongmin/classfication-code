@@ -25,7 +25,11 @@ for first in *.part-aa; do
 done
 
 echo "== 3. 이미지 불러오기"
-for img in mcc_*.tar.gz; do if [ -e "$img" ]; then docker load -i "$img"; fi; done
+for img in mcc_*.tar.gz; do
+  [ -e "$img" ] || continue
+  tag=${img%.tar.gz}; tag=${tag/_/:}
+  if docker image inspect "$tag" >/dev/null 2>&1; then echo "있음: $tag (다시 불러오지 않음)"; else docker load -i "$img"; fi
+done
 
 echo "== 4. 모델 배치 -> $MODELS_DIR"
 for f in models__*; do

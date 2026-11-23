@@ -168,7 +168,8 @@ def check_api(label, api, want_model, r):
         with urllib.request.urlopen(req, timeout=api.get("check_timeout", 5)) as resp:
             data = json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
-        r.bad("E53" if e.code in (401, 403) else "E54", f"{label}: {url} -> HTTP {e.code}")
+        body = e.read().decode("utf-8", "replace")[:150]
+        r.bad("E53" if e.code in (401, 403) else "E54", f"{label}: {url} -> HTTP {e.code} {body}")
         return
     except Exception as e:  # noqa: BLE001
         r.bad("E51", f"{label}: {url} ({type(e).__name__}: {str(getattr(e, 'reason', e))[:80]})")
