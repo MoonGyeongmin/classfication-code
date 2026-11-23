@@ -5,7 +5,10 @@ import pandas as pd
 import torch
 
 from .codebook import Codebook
-from .data import add_text, read_table, standardize, write_table
+from pathlib import Path
+
+from .data import add_text, read_table, require_columns, standardize, write_table
+from .errors import MccError
 from .model import MultiHeadClassifier
 
 log = logging.getLogger(__name__)
@@ -73,9 +76,16 @@ def predict_df(df, model, tokenizer, codebook, cfg, device):
 def run(cfg, input_path, output_path, model_dir=None):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     codebook = Codebook.load(cfg["codebook_dir"])
-    model, tokenizer, _ = MultiHeadClassifier.load(model_dir or cfg["train"]["output_dir"], device)
+    model_dir = Path(model_dir or cfg["train"]["output_dir"])
+    if not (model_dir / "meta.json").is_file():
+        raise MccError("E35", str(model_dir))
+    try:
+        model, tokenizer, _ = MultiHeadClassifier.load(model_dir, device)
+    except Exception as e:  # noqa: BLE001
+        raise MccError("E22", f"{model_dir}: {type(e).__name__} {str(e)[:100]}") from e
 
     raw = read_table(input_path)
+    require_columns(raw, cfg["columns"]["data"], [], Path(input_path).name, any_of=("defect", "action"))
     df = add_text(standardize(raw, cfg["columns"]["data"]))
     out = predict_df(df, model, tokenizer, codebook, cfg, device)
 

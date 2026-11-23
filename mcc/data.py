@@ -4,6 +4,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from .errors import MccError
+
 log = logging.getLogger(__name__)
 
 HMC_RE = re.compile(r"^\d{3}$")
@@ -15,11 +17,25 @@ ILLEGAL_XLSX = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
 def read_table(path, sheet=None):
     """CSV/엑셀을 모두 문자열로 읽는다. 숫자로 읽히면 HMC 앞자리 0이 사라지므로 dtype=str이 필수다."""
     path = Path(path)
-    if path.suffix.lower() in (".xlsx", ".xlsm", ".xls"):
-        df = pd.read_excel(path, dtype=str, sheet_name=sheet or 0)
-    else:
-        df = pd.read_csv(path, dtype=str, encoding="utf-8-sig")
+    if not path.is_file():
+        raise MccError("E90", str(path))
+    try:
+        if path.suffix.lower() in (".xlsx", ".xlsm", ".xls"):
+            df = pd.read_excel(path, dtype=str, sheet_name=sheet or 0)
+        else:
+            df = pd.read_csv(path, dtype=str, encoding="utf-8-sig")
+    except Exception as e:  # noqa: BLE001
+        raise MccError("E31", f"{path.name}: {type(e).__name__} {str(e)[:100]}") from e
     return df.fillna("")
+
+
+def require_columns(df, cols, keys, where, any_of=()):
+    """설정(columns)에 적힌 컬럼이 실제 파일에 있는지 본다. keys는 모두, any_of는 하나 이상 있어야 한다."""
+    missing = [cols.get(k) or f"({k} 비어 있음)" for k in keys if not cols.get(k) or cols[k] not in df.columns]
+    if any_of and not any(cols.get(k) and cols[k] in df.columns for k in any_of):
+        missing.append(" 또는 ".join(cols.get(k) or k for k in any_of))
+    if missing:
+        raise MccError("E32", f"{where}에 {', '.join(missing)} 없음. 실제 컬럼: {', '.join(map(str, df.columns[:15]))}")
 
 
 def write_table(df, path):

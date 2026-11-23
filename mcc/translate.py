@@ -9,6 +9,8 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pandas as pd
 
+from .errors import MccError
+
 from .data import read_table, write_table
 
 log = logging.getLogger(__name__)
@@ -36,7 +38,7 @@ class ApiTranslator:
         api = tcfg["api"]
         key = os.environ.get(api.get("api_key_env", "LITELLM_API_KEY"), "")
         if not key:
-            raise RuntimeError(f"환경 변수 {api.get('api_key_env', 'LITELLM_API_KEY')}에 API 키를 넣어 주세요.")
+            raise MccError("E50", f"환경 변수 {api.get('api_key_env', 'LITELLM_API_KEY')}에 API 키를 넣어 주세요.")
         self.client = OpenAI(base_url=api["base_url"], api_key=key, timeout=api.get("timeout", 120),
                              max_retries=api.get("max_retries", 3))
         self.model = api["model"]

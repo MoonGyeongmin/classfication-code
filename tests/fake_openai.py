@@ -13,9 +13,17 @@ def _embed(text, dim=64):
 
 class Handler(BaseHTTPRequestHandler):
     calls = []
+    models = ["qwen-test", "bge-m3-test", "qwen2.5-32b", "bge-m3"]
 
     def log_message(self, *a):
         pass
+
+    def do_GET(self):
+        if self.headers.get("Authorization") != "Bearer sk-test":
+            return self._send(401, {"error": {"message": "bad key"}})
+        if self.path.endswith("/models"):
+            return self._send(200, {"object": "list", "data": [{"id": m, "object": "model"} for m in Handler.models]})
+        self._send(404, {})
 
     def do_POST(self):
         body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))

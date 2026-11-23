@@ -17,8 +17,18 @@ MODELS_DIR=${MODELS_DIR:-/srv/mcc/models}
 WORK_DIR=${WORK_DIR:-/srv/mcc/work}
 CONFIG=${CONFIG:-/app/configs/default.yaml}
 
-exec docker run --rm --gpus all --shm-size 16g ${DOCKER_NETWORK:+--network "$DOCKER_NETWORK"} \
-  ${LITELLM_API_KEY:+-e LITELLM_API_KEY} \
+# GPU가 없는 PC(검증용)에서도 돌도록 nvidia-smi가 없으면 --gpus를 빼고 CPU로 실행한다. GPUS=all/none 으로 강제 가능.
+if [ -z "${GPUS+x}" ]; then
+  if command -v nvidia-smi >/dev/null 2>&1 && nvidia-smi -L >/dev/null 2>&1; then GPUS=all; else GPUS=none; echo "[run.sh] GPU 없음: CPU로 실행" >&2; fi
+fi
+GPU_ARGS=(); [ "$GPUS" = none ] || GPU_ARGS=(--gpus "$GPUS")
+# 리허설은 기본으로 네트워크를 끊고(폐쇄망과 같게) 돌린다.
+[ "${1:-}" = rehearse ] && DOCKER_NETWORK=${DOCKER_NETWORK:-none}
+[ -t 1 ] && TTY_ARGS=(-t) || TTY_ARGS=()
+
+exec docker run --rm "${GPU_ARGS[@]}" "${TTY_ARGS[@]}" --shm-size 16g ${DOCKER_NETWORK:+--network "$DOCKER_NETWORK"} \
+  ${LITELLM_API_KEY:+-e LITELLM_API_KEY} -e MCC_HOST_WORK="$WORK_DIR" \
   -v "$DATA_DIR:/data" -v "$MODELS_DIR:/models:ro" -v "$WORK_DIR:/work" \
   -v "$PWD/mcc:/app/mcc:ro" -v "$PWD/configs:/app/configs:ro" -v "$PWD/codebook:/app/codebook:ro" \
+  -v "$PWD/tests:/app/tests:ro" -v "$PWD/scripts:/app/scripts:ro" \
   "$IMAGE" --config "$CONFIG" "$@"

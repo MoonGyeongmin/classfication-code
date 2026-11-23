@@ -1,6 +1,7 @@
 import logging
 import math
 import random
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -11,7 +12,8 @@ from torch.nn import functional as F
 from transformers import AutoTokenizer, get_linear_schedule_with_warmup
 
 from .codebook import Codebook
-from .data import add_text, filter_labels, read_table, standardize
+from .data import add_text, filter_labels, read_table, require_columns, standardize
+from .errors import MccError
 from .model import MultiHeadClassifier
 
 log = logging.getLogger(__name__)
@@ -23,6 +25,15 @@ def set_seed(seed):
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
+
+
+def load_encoder(path, label_maps):
+    if not Path(path).is_dir():
+        raise MccError("E20", str(path))
+    try:
+        return AutoTokenizer.from_pretrained(path), MultiHeadClassifier(path, label_maps)
+    except Exception as e:  # noqa: BLE001
+        raise MccError("E22", f"{path}: {type(e).__name__} {str(e)[:100]}") from e
 
 
 def split(df, val_ratio, seed):
@@ -73,7 +84,14 @@ def run(cfg):
     codebook = Codebook.load(cfg["codebook_dir"])
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    df = filter_labels(add_text(standardize(read_table(tcfg["train_file"]), cfg["columns"]["data"])), codebook)
+    cols = cfg["columns"]["data"]
+    if not Path(tcfg["train_file"]).is_file():
+        raise MccError("E30", tcfg["train_file"])
+    raw = read_table(tcfg["train_file"])
+    require_columns(raw, cols, ["hmc", "atc"], Path(tcfg["train_file"]).name, any_of=("defect", "action"))
+    df = filter_labels(add_text(standardize(raw, cols)), codebook)
+    if len(df) < 10:
+        raise MccError("E34", f"코드표에 맞는 행 {len(df)}건")
     df["lang"] = "ko"
     train_df, val_df = split(df, tcfg["val_ratio"], tcfg["seed"])
     log.info("학습 %d건, 검증 %d건", len(train_df), len(val_df))
@@ -89,8 +107,8 @@ def run(cfg):
     log.info("증강 포함 학습 %d건, 언어별 검증 %s", len(train_df), {k: len(v) for k, v in val_sets.items()})
 
     label_maps = {"hmc": sorted(codebook.hmc), "atc": sorted(codebook.atc)}
-    tokenizer = AutoTokenizer.from_pretrained(cfg["model"]["encoder"])
-    model = MultiHeadClassifier(cfg["model"]["encoder"], label_maps).to(device)
+    tokenizer, model = load_encoder(cfg["model"]["encoder"], label_maps)
+    model = model.to(device)
 
     # 데이터에 거의 없는 코드가 많으므로 빈도의 역수 제곱근으로 손실 가중치를 준다.
     weights = {}
