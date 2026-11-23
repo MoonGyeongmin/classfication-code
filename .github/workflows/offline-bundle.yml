@@ -7,7 +7,7 @@ on:
     inputs:
       tag:
         description: 릴리스 태그
-        default: offline-v0.1.0
+        default: offline-v0.1.1
       encoder:
         description: 인코더(허깅페이스 저장소)
         default: BAAI/bge-m3
@@ -19,7 +19,7 @@ permissions:
   contents: write
 
 env:
-  IMAGE: mcc:0.1.0
+  IMAGE: mcc:0.1.1
   GH_TOKEN: ${{ github.token }}
   TAG: ${{ inputs.tag }}
 
@@ -40,14 +40,21 @@ jobs:
           gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "$TAG 폐쇄망 반입 파일" --notes "docker/install_bundle.sh 사용법은 README 참고. 커밋 ${GITHUB_SHA::7}"
           gh release upload "$TAG" docker/install_bundle.sh --clobber
 
+      - name: 코드 업로드
+        run: |
+          # 폐쇄망에서 저장소 ZIP을 따로 받지 않도록 이 커밋의 코드를 함께 올린다(install_bundle.sh가 /srv/mcc/app에 푼다).
+          git archive --format=tar.gz --prefix=mcc-app/ -o mcc-app.tar.gz HEAD
+          sha256sum mcc-app.tar.gz > SHA256SUMS.code
+          gh release upload "$TAG" mcc-app.tar.gz SHA256SUMS.code --clobber
+
       - name: 이미지 빌드
-        run: docker build -f docker/Dockerfile --build-arg BASE_IMAGE=mirror.gcr.io/nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04 -t "$IMAGE" .
+        run: docker build -f docker/Dockerfile --build-arg BASE_IMAGE=mirror.gcr.io/nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04 -t "$IMAGE" -t mcc:latest .
 
       - name: 이미지 업로드
         run: |
           mkdir dist && name=${IMAGE/:/_}.tar.gz
-          docker save "$IMAGE" | gzip | split -b 1900M - "dist/$name.part-"
-          docker rmi "$IMAGE" && docker builder prune -af
+          docker save "$IMAGE" mcc:latest | gzip | split -b 1900M - "dist/$name.part-"
+          docker rmi "$IMAGE" mcc:latest && docker builder prune -af
           ( cd dist && sha256sum * > ../SHA256SUMS.image )
           for f in dist/*; do gh release upload "$TAG" "$f" --clobber && rm "$f"; done
           gh release upload "$TAG" SHA256SUMS.image --clobber

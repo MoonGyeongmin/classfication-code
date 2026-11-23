@@ -49,21 +49,26 @@ bash docker/build_offline.sh        # dist/ 에 이미지(.tar.gz), models.tar, 
 
 사내 PC에 Docker나 허깅페이스 접속이 없으면 GitHub Actions가 대신 빌드해 Releases에 올린다.
 
-1. 저장소 Actions 탭 > `offline-bundle` > Run workflow (번역 LLM이 필요하면 `llm`에 `Qwen/Qwen2.5-32B-Instruct` 입력)
-2. 끝나면 Releases의 `offline-v0.1.0`에서 파일을 **전부** 한 폴더로 받는다(2GB 제한 때문에 `.part-aa`, `-ab` … 조각으로 나뉨)
-3. 그 폴더째 폐쇄망으로 반입해서 `bash install_bundle.sh` → 체크섬 확인, 조각 합치기, `docker load`, `/srv/mcc/models`에 모델 배치까지 한다
+1. 저장소 Actions 탭 > `offline-bundle` > Run workflow (번역은 사내 LiteLLM을 쓰므로 `llm`은 비워 둔다)
+2. 끝나면 Releases의 해당 태그(예: `offline-v0.1.1`)에서 파일을 **전부** 한 폴더로 받는다.
+   이미지·코드(`mcc-app.tar.gz`)·bge-m3가 모두 들어 있으므로 저장소 ZIP은 따로 받지 않는다.
+3. 그 폴더째 폐쇄망으로 반입해서 `sudo bash install_bundle.sh` 한 번 실행한다.
+   체크섬 확인, 조각 합치기, `docker load`, `/srv/mcc/models`에 모델 배치, `/srv/mcc/app`에 코드 설치, `mcc` 명령 등록까지 한다.
 
 이미지 약 5.7GB(조각 4개) + BGE-M3 약 2.3GB. LLM을 넣으면 Qwen2.5-32B 약 65GB가 더해진다.
 
 ## 2. 폐쇄망에 설치
 
 ```bash
-sha256sum -c SHA256SUMS
-docker load < mcc_0.1.0.tar.gz
-sudo mkdir -p /srv/mcc/{data,work} && sudo tar -C /srv/mcc -xf models.tar   # -> /srv/mcc/models/...
-nvidia-smi                                                                    # 드라이버 550 이상이어야 CUDA 12.4 이미지가 돈다
-bash docker/run.sh --help
+sudo bash install_bundle.sh     # 받은 파일이 있는 폴더에서
+nvidia-smi                      # 드라이버 550 이상이어야 CUDA 12.4 이미지가 돈다
+mcc --help                      # = bash /srv/mcc/app/docker/run.sh --help
 ```
+그다음 `/srv/mcc/app/configs/default.yaml`에서 컬럼명과 `translate.api`(LiteLLM 주소, 모델 이름)만 맞추면 된다.
+다시 설치해도 이 설정 폴더는 그대로 유지된다. 데이터는 `/srv/mcc/data`(컨테이너 안 `/data`), 결과는 `/srv/mcc/work`(`/work`)에 둔다.
+
+`build_offline.sh`로 직접 만든 파일(`models.tar`)을 반입했다면 예전처럼 `sha256sum -c SHA256SUMS`, `docker load`,
+`tar -C /srv/mcc -xf models.tar` 후 저장소 폴더에서 `bash docker/run.sh`로 실행한다.
 
 ### 폐쇄망에 이미 LiteLLM(Qwen, bge-m3)이 있는 경우
 
@@ -78,7 +83,7 @@ translate:
     model: <LiteLLM에 등록된 Qwen 모델 이름>
 ```
 ```bash
-LITELLM_API_KEY=sk-... bash docker/run.sh translate --input /data/train/fa50_ko.xlsx --output /data/train/fa50_aug.xlsx
+LITELLM_API_KEY=sk-... mcc translate --input /data/train/fa50_ko.xlsx --output /data/train/fa50_aug.xlsx
 # LiteLLM이 같은 서버에 있으면 DOCKER_NETWORK=host 를 앞에 붙이고 base_url을 http://localhost:4000/v1 로 둔다
 ```
 
@@ -107,17 +112,17 @@ WUC 유사도 검색의 임베딩은 `wuc.embed_backend: api`로 바꾸면 LiteL
 
 ```bash
 # (선택) 번역 증강: 학습 데이터를 en/pl/th/tl로 번역. 키는 LITELLM_API_KEY 환경 변수로
-LITELLM_API_KEY=sk-... bash docker/run.sh translate --input /data/train/fa50_ko.xlsx --output /data/train/fa50_aug.xlsx
+LITELLM_API_KEY=sk-... mcc translate --input /data/train/fa50_ko.xlsx --output /data/train/fa50_aug.xlsx
 #   -> configs의 train.augment_files에 /data/train/fa50_aug.xlsx 추가
 
 # 학습: /work/models/hmc_atc 에 최고 모델과 history.csv(에폭별·언어별 정확도) 저장
-bash docker/run.sh train
+mcc train
 
 # 파일 하나 예측
-bash docker/run.sh predict --input /data/inbox/sample.xlsx --output /work/out/sample_pred.xlsx
+mcc predict --input /data/inbox/sample.xlsx --output /work/out/sample_pred.xlsx
 
 # 주기 실행: inbox의 새 파일을 모두 예측 + 요약 보고서, 처리한 파일은 inbox/processed로 이동
-bash docker/run.sh batch --inbox /data/inbox --outbox /work/out
+mcc batch --inbox /data/inbox --outbox /work/out
 ```
 매일 자동 실행은 `docker/cron.example`을 crontab에 등록한다.
 
@@ -139,12 +144,12 @@ bash docker/run.sh batch --inbox /data/inbox --outbox /work/out
 ## 테스트
 
 ```bash
-docker run --rm --entrypoint python mcc:0.1.0 -m pytest -q tests   # 폐쇄망에서도 외부 모델 없이 돈다
+docker run --rm --entrypoint python mcc:latest -m pytest -q tests   # 폐쇄망에서도 외부 모델 없이 돈다
 ```
 
 가짜 데이터로 전체 흐름을 돌려 입력·출력 엑셀을 직접 보려면:
 ```bash
-docker run --rm -v /srv/mcc/work:/work --entrypoint python mcc:0.1.0 scripts/demo.py /work/demo /work/demo_tmp
+docker run --rm -v /srv/mcc/work:/work --entrypoint python mcc:latest scripts/demo.py /work/demo /work/demo_tmp
 ```
 
 ## 알려진 한계

@@ -2,4 +2,4 @@
 # crontab -e 로 아래 줄을 추가한다(경로는 저장소 위치에 맞게 수정).
 # 결과: /srv/mcc/work/out/<날짜시각>/<파일명>_pred.xlsx, <파일명>_summary.xlsx
 # 처리한 원본은 /srv/mcc/data/inbox/processed/<날짜시각>/ 으로 옮겨진다.
-0 6 * * * cd /opt/classfication-code && bash docker/run.sh batch --inbox /data/inbox --outbox /work/out >> /srv/mcc/work/batch.log 2>&1
+0 6 * * * /usr/local/bin/mcc batch --inbox /data/inbox --outbox /work/out >> /srv/mcc/work/batch.log 2>&1
