@@ -60,6 +60,8 @@ jobs:
           COMMIT: ${{ inputs.vscode_commit }}
         run: |
           # Remote-SSH가 서버에서 받으려는 두 파일(서버 본체, CLI)을 미리 받아 둔다. install_bundle.sh가 ~/.vscode-server에 푼다.
+          if [ "$COMMIT" = latest ]; then COMMIT=$(curl -fsSL https://update.code.visualstudio.com/api/update/server-linux-x64/stable/latest | jq -r .version); fi
+          echo "VS Code commit: $COMMIT"
           curl -fsSL -o "vscode-server_$COMMIT.tar.gz" "https://update.code.visualstudio.com/commit:$COMMIT/server-linux-x64/stable"
           curl -fsSL -o "vscode-cli_$COMMIT.tar.gz" "https://update.code.visualstudio.com/commit:$COMMIT/cli-alpine-x64/stable"
           sha256sum vscode-*_"$COMMIT".tar.gz > SHA256SUMS.vscode
