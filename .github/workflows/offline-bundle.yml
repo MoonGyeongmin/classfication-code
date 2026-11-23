@@ -14,6 +14,13 @@ on:
       llm:
         description: 번역 LLM(비우면 생략)
         default: ""
+      vscode_commit:
+        description: "VS Code Server 오프라인 설치용 커밋(VS Code 도움말 > 정보의 커밋). 비우면 생략"
+        default: ""
+      code_only:
+        description: "true면 이미지·모델은 건너뛰고 코드와 install_bundle.sh만 갱신"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -47,10 +54,23 @@ jobs:
           sha256sum mcc-app.tar.gz > SHA256SUMS.code
           gh release upload "$TAG" mcc-app.tar.gz SHA256SUMS.code --clobber
 
+      - name: VS Code Server
+        if: inputs.vscode_commit != ''
+        env:
+          COMMIT: ${{ inputs.vscode_commit }}
+        run: |
+          # Remote-SSH가 서버에서 받으려는 두 파일(서버 본체, CLI)을 미리 받아 둔다. install_bundle.sh가 ~/.vscode-server에 푼다.
+          curl -fsSL -o "vscode-server_$COMMIT.tar.gz" "https://update.code.visualstudio.com/commit:$COMMIT/server-linux-x64/stable"
+          curl -fsSL -o "vscode-cli_$COMMIT.tar.gz" "https://update.code.visualstudio.com/commit:$COMMIT/cli-alpine-x64/stable"
+          sha256sum vscode-*_"$COMMIT".tar.gz > SHA256SUMS.vscode
+          gh release upload "$TAG" vscode-*_"$COMMIT".tar.gz SHA256SUMS.vscode --clobber
+
       - name: 이미지 빌드
+        if: ${{ !inputs.code_only }}
         run: docker build -f docker/Dockerfile --build-arg BASE_IMAGE=mirror.gcr.io/nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04 -t "$IMAGE" -t mcc:latest .
 
       - name: 이미지 업로드
+        if: ${{ !inputs.code_only }}
         run: |
           mkdir dist && name=${IMAGE/:/_}.tar.gz
           docker save "$IMAGE" mcc:latest | gzip | split -b 1900M - "dist/$name.part-"
@@ -60,6 +80,7 @@ jobs:
           gh release upload "$TAG" SHA256SUMS.image --clobber
 
       - name: 모델 업로드
+        if: ${{ !inputs.code_only }}
         env:
           ENCODER: ${{ inputs.encoder }}
           LLM: ${{ inputs.llm }}

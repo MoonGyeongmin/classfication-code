@@ -13,6 +13,7 @@ import torch
 from transformers import AutoModel, AutoTokenizer
 
 from .data import WUC_RE, norm_wuc, read_table
+from .errors import MccError
 
 log = logging.getLogger(__name__)
 
@@ -30,10 +31,13 @@ def load_refs(files, cols, keys):
     frames = []
     for f in files or []:
         f = {"path": f} if isinstance(f, str) else f
-        t = read_table(f["path"], f.get("sheet"))
+        try:
+            t = read_table(f["path"], f.get("sheet"))
+        except MccError as e:
+            raise MccError("E40" if e.code == "E90" else e.code, e.detail) from e
         missing = [cols[k] for k in keys if cols.get(k) and cols[k] not in t.columns and not (k == "aircraft" and f.get("aircraft"))]
         if missing:
-            raise KeyError(f"{f['path']}에 컬럼 {missing}이 없습니다. configs의 columns 설정을 확인하세요. 실제 컬럼: {list(t.columns)}")
+            raise MccError("E41", f"{f['path']}에 {', '.join(missing)} 없음. 실제 컬럼: {', '.join(map(str, t.columns[:15]))}")
         d = pd.DataFrame(index=t.index)
         for k in keys:
             d[k] = t[cols[k]].astype(str).str.strip() if cols.get(k) and cols[k] in t.columns else ""
@@ -77,7 +81,7 @@ class ApiEmbedder:
 
         key = os.environ.get(api.get("api_key_env", "LITELLM_API_KEY"), "")
         if not key:
-            raise RuntimeError(f"환경 변수 {api.get('api_key_env', 'LITELLM_API_KEY')}에 API 키를 넣어 주세요.")
+            raise MccError("E50", f"환경 변수 {api.get('api_key_env', 'LITELLM_API_KEY')}에 API 키를 넣어 주세요.")
         self.client = OpenAI(base_url=api["base_url"], api_key=key, timeout=api.get("timeout", 120),
                              max_retries=api.get("max_retries", 3))
         self.model = api["model"]
