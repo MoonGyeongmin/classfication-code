@@ -13,8 +13,8 @@ DIST=${DIST:-dist}
 mkdir -p "$DIST/models"
 
 docker build -f docker/Dockerfile ${BASE_IMAGE:+--build-arg BASE_IMAGE="$BASE_IMAGE"} \
-  ${CA_CERT:+--secret id=ca_cert,src="$CA_CERT"} -t "$IMAGE" .
-docker save "$IMAGE" | gzip > "$DIST/${IMAGE/:/_}.tar.gz"
+  ${CA_CERT:+--secret id=ca_cert,src="$CA_CERT"} -t "$IMAGE" -t mcc:latest .
+docker save "$IMAGE" mcc:latest | gzip > "$DIST/${IMAGE/:/_}.tar.gz"
 
 download() {  # $1: HF 저장소, $2: 저장 폴더명
   docker run --rm -e HF_HUB_OFFLINE=0 \
