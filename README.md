@@ -109,7 +109,15 @@ mcc rehearse --augment # 번역 증강(가짜 API) 단계까지 넣어 검증
 `doctor`는 줄마다 `[OK ]`, `[W11]`, `[E32]`처럼 찍고 마지막 줄에 문제 코드만 모은다(예: `결과 코드: E32 W11`).
 다른 명령도 실패하면 traceback 대신 `[오류 E32] ...` 한 줄과 조치, 로그 파일 위치(`/srv/mcc/work/logs/`)를 보여 준다.
 폐쇄망에서 막히면 **그 코드와 한 줄만** 옮겨 적으면 된다. E는 멈춘 오류, W는 경고다.
-GPU가 없는 서버에서는 `run.sh`가 알아서 CPU로 돌린다(`GPUS=none`/`all`로 강제 가능).
+GPU는 기본으로 **0번 한 장만** 쓴다(`--gpus device=0`). 공용 서버에서 다른 GPU를 쓰려면 `GPUS=device=1 mcc train`, 전부 보이게 하려면 `GPUS=all`.
+GPU가 없는 서버에서는 `run.sh`가 알아서 CPU로 돌린다(`GPUS=none`으로 강제 가능). WSL2에서는 `/usr/lib/wsl/lib/nvidia-smi`도 찾아본다.
+
+### 공용 GPU 서버(RTX 6000 Ada, Windows 11 + WSL2)에서 쓰기
+- 이미지는 그대로 쓴다(amd64, torch 2.5.1+cu124는 Ada=sm_89와 bf16 지원). SSH로 들어간 WSL2 안에서 `sudo bash install_bundle.sh`.
+- 학습 설정(batch 32, 길이 256, bf16)은 H200과 같게 둔다. 48GB 한 장으로 충분하고, 설정이 같으니 정확도도 같다. 속도만 느리다.
+- 번역(Qwen/LiteLLM)과 WUC는 기본값대로 꺼 둔다. 학습 데이터는 WinSCP로 `/srv/mcc/data/train/`에 올린다.
+- `mcc doctor` 첫 줄에 `GPU 2장 보임, 0번 사용: NVIDIA RTX 6000 Ada Generation (sm_89, ...)`처럼 나오면 된다.
+- 공용 서버라 `docker system prune`, `docker image prune` 같은 일괄 삭제는 쓰지 않는다. 지울 땐 `docker rmi mcc:<버전>`처럼 이름을 지정한다.
 
 #### 오류 코드표
 
@@ -120,6 +128,7 @@ GPU가 없는 서버에서는 `run.sh`가 알아서 CPU로 돌린다(`GPUS=none`
 | E03 | 코드표(codebook) 읽기 실패 | codebook/hmc.csv, atc.csv가 있는지 확인 |
 | E10 | 파이썬 패키지 불러오기 실패 | 이미지가 손상됨. install_bundle.sh 다시 실행 |
 | W11 | GPU가 안 보임, CPU로 실행 | nvidia-smi 확인. 드라이버 550 이상, nvidia-container-toolkit 필요 |
+| W12 | 이 GPU를 이미지의 torch가 지원하지 않음 | doctor에 찍힌 sm_ 값과 torch 빌드 목록을 적어 옴. 이미지 재빌드 필요 |
 | E20 | 인코더(bge-m3) 폴더 없음 | model.encoder 경로와 /srv/mcc/models/bge-m3 확인 |
 | E21 | 인코더 파일 일부 없음 | config.json, 가중치, 토크나이저 파일이 다 있는지 확인 |
 | E22 | 인코더 불러오기 실패(파일 손상 등) | 모델 파일을 다시 복사 |

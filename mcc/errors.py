@@ -9,6 +9,7 @@ CODES = {
     "E03": ("코드표(codebook) 읽기 실패", "codebook/hmc.csv, atc.csv가 있는지 확인"),
     "E10": ("파이썬 패키지 불러오기 실패", "이미지가 손상됨. install_bundle.sh 다시 실행"),
     "W11": ("GPU가 안 보임, CPU로 실행", "nvidia-smi 확인. 드라이버 550 이상, nvidia-container-toolkit 필요"),
+    "W12": ("이 GPU를 이미지의 torch가 지원하지 않음", "doctor에 찍힌 sm_ 값과 torch 빌드 목록을 적어 옴. 이미지 재빌드 필요"),
     "E20": ("인코더(bge-m3) 폴더 없음", "model.encoder 경로와 /srv/mcc/models/bge-m3 확인"),
     "E21": ("인코더 파일 일부 없음", "config.json, 가중치, 토크나이저 파일이 다 있는지 확인"),
     "E22": ("인코더 불러오기 실패(파일 손상 등)", "모델 파일을 다시 복사"),

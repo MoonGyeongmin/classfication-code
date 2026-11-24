@@ -17,9 +17,11 @@ MODELS_DIR=${MODELS_DIR:-/srv/mcc/models}
 WORK_DIR=${WORK_DIR:-/srv/mcc/work}
 CONFIG=${CONFIG:-/app/configs/default.yaml}
 
-# GPU가 없는 PC(검증용)에서도 돌도록 nvidia-smi가 없으면 --gpus를 빼고 CPU로 실행한다. GPUS=all/none 으로 강제 가능.
+# GPU는 기본으로 0번 한 장만 쓴다(공용 서버에서 다른 팀 GPU를 건드리지 않게). GPUS=device=1 / all / none 으로 바꿀 수 있다.
+# nvidia-smi가 없으면(GPU 없는 검증용 PC) --gpus를 빼고 CPU로 실행한다. WSL2에서는 nvidia-smi가 /usr/lib/wsl/lib에 있다.
 if [ -z "${GPUS+x}" ]; then
-  if command -v nvidia-smi >/dev/null 2>&1 && nvidia-smi -L >/dev/null 2>&1; then GPUS=all; else GPUS=none; echo "[run.sh] GPU 없음: CPU로 실행" >&2; fi
+  smi=$(command -v nvidia-smi || true); [ -n "$smi" ] || [ ! -x /usr/lib/wsl/lib/nvidia-smi ] || smi=/usr/lib/wsl/lib/nvidia-smi
+  if [ -n "$smi" ] && "$smi" -L >/dev/null 2>&1; then GPUS=device=0; else GPUS=none; echo "[run.sh] GPU 없음: CPU로 실행" >&2; fi
 fi
 GPU_ARGS=(); [ "$GPUS" = none ] || GPU_ARGS=(--gpus "$GPUS")
 # 리허설은 기본으로 네트워크를 끊고(폐쇄망과 같게) 돌린다.

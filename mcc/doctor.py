@@ -54,12 +54,20 @@ def check_packages():
 
 def check_gpu(r):
     import torch
-    if torch.cuda.is_available():
-        names = [torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())]
-        free, total = torch.cuda.mem_get_info(0)
-        r.ok(f"GPU {len(names)}장: {names[0]} (여유 {free / 2**30:.0f}/{total / 2**30:.0f} GB)")
-    else:
+    if not torch.cuda.is_available():
         r.bad("W11", "torch.cuda.is_available() = False")
+        return
+    names = [torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())]
+    free, total = torch.cuda.mem_get_info(0)
+    major, minor = torch.cuda.get_device_capability(0)
+    arch = f"sm_{major}{minor}"
+    r.ok(f"GPU {len(names)}장 보임, 0번 사용: {names[0]} ({arch}, 여유 {free / 2**30:.0f}/{total / 2**30:.0f} GB)")
+    built = torch.cuda.get_arch_list()
+    # 같은 major의 더 낮은 sm으로 빌드된 커널은 그대로 돈다(예: sm_86 빌드 -> sm_89 GPU).
+    if not any(a.startswith("sm_") and int(a[3:-1]) == major and int(a[-1]) <= minor for a in built):
+        r.bad("W12", f"이 torch는 {arch}용으로 빌드되지 않음 (빌드: {' '.join(built)})")
+    elif not torch.cuda.is_bf16_supported():
+        r.bad("W12", f"{names[0]}가 bf16을 지원하지 않음")
 
 
 def check_encoder(path, deep):
