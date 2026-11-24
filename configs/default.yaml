@@ -73,7 +73,11 @@ predict:
   apply_rules: true        # codebook/rules.yaml의 ATC-HMC 조합 규칙 적용
 
 wuc:
-  enabled: false           # GBL / -06 WUC 테이블을 준비한 뒤 true
+  # 참고자료가 없으면 false로 둔다(HMC/ATC만 예측). -06 WUC 목록만 있어도 켤 수 있다(GBL은 선택):
+  #   1) -06에서 기종, WUC, 부품명 세 컬럼짜리 엑셀을 만들어 /srv/mcc/data/ref/에 둔다
+  #   2) 아래 wuc_table_files에 경로를 적고(gbl_files는 [] 그대로) enabled: true
+  #   3) mcc doctor로 확인
+  enabled: false
   # local: /models의 bge-m3를 직접 사용 / api: LiteLLM의 임베딩 모델 호출
   embed_backend: local
   embedder: /models/bge-m3
