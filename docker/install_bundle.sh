@@ -84,9 +84,9 @@ fi
 
 echo
 echo "완료. 조각 파일(*.part-*)은 지워도 된다."
-echo "남은 일: $APP_DIR/configs/default.yaml 의 translate.api 에 LiteLLM 주소와 모델 이름을 적고 컬럼명을 맞춘다."
+echo "남은 일: $APP_DIR/configs/default.yaml 의 columns: 에서 컬럼명을 실제 엑셀에 맞춘다. LiteLLM(Qwen)은 필요 없다."
 echo "점검:   mcc doctor          (문제가 있으면 마지막 줄의 코드만 적어 오면 된다)"
-echo "리허설: mcc rehearse        (가짜 데이터로 번역→학습→예측→보고서, 네트워크 끊고 실행)"
-echo "실행 예) mcc --help"
-echo "        LITELLM_API_KEY=sk-... mcc translate --input /data/train/fa50_ko.xlsx --output /data/train/fa50_aug.xlsx"
-echo "        mcc train"
+echo "리허설: mcc rehearse        (가짜 데이터로 학습→평가→예측→보고서, 네트워크 끊고 실행)"
+echo "실행 예) mcc train"
+echo "        mcc predict --input /data/inbox/a.xlsx --output /work/out/a_pred.xlsx"
+echo "        mcc evaluate --input /data/eval/foreign_labeled.xlsx   (정답 붙인 외국어 기록으로 채점)"

@@ -4,8 +4,9 @@ import numpy as np
 import pandas as pd
 import torch
 
-from .codebook import Codebook
 from pathlib import Path
+
+from .codebook import Codebook
 
 from .data import add_text, read_table, require_columns, standardize, write_table
 from .errors import MccError
@@ -73,16 +74,22 @@ def predict_df(df, model, tokenizer, codebook, cfg, device):
     return pd.concat([df.reset_index(drop=True), pd.DataFrame(rows)], axis=1)
 
 
-def run(cfg, input_path, output_path, model_dir=None):
+def load_model(cfg, model_dir=None):
+    """학습된 모델을 불러온다. (model, tokenizer, meta, device, model_dir)"""
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    codebook = Codebook.load(cfg["codebook_dir"])
     model_dir = Path(model_dir or cfg["train"]["output_dir"])
     if not (model_dir / "meta.json").is_file():
         raise MccError("E35", str(model_dir))
     try:
-        model, tokenizer, _ = MultiHeadClassifier.load(model_dir, device)
+        model, tokenizer, meta = MultiHeadClassifier.load(model_dir, device)
     except Exception as e:  # noqa: BLE001
         raise MccError("E22", f"{model_dir}: {type(e).__name__} {str(e)[:100]}") from e
+    return model, tokenizer, meta, device, model_dir
+
+
+def run(cfg, input_path, output_path, model_dir=None):
+    codebook = Codebook.load(cfg["codebook_dir"])
+    model, tokenizer, _, device, _ = load_model(cfg, model_dir)
 
     raw = read_table(input_path)
     require_columns(raw, cfg["columns"]["data"], [], Path(input_path).name, any_of=("defect", "action"))

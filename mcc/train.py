@@ -154,7 +154,8 @@ def run(cfg):
         if score > best:
             best = score
             model.save(tcfg["output_dir"], tokenizer, {"epoch": epoch, "scores": scores,
-                                                         "max_length": cfg["model"]["max_length"]})
+                                                         "max_length": cfg["model"]["max_length"],
+                                                         "augment_files": [str(f) for f in tcfg.get("augment_files") or []]})
             log.info("최고 모델 저장: %s", tcfg["output_dir"])
     pd.DataFrame(history).to_csv(f"{tcfg['output_dir']}/history.csv", index=False)
     return history
