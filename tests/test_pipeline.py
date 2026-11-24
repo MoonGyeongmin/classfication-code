@@ -40,6 +40,19 @@ def test_train_predict_batch(tmp_path):
     hist = pd.read_csv(tmp_path / "model/history.csv")
     assert hist["ko/hmc_acc"].max() > 0.9 and hist["ko/atc_acc"].max() > 0.9
 
+    # 정답 붙은 평가 파일(lang 컬럼 포함)로 채점
+    ev = pd.read_excel(fx / "train.xlsx", dtype=str).head(40)
+    ev["lang"] = ["ko", "en"] * 20
+    ev.loc[0, "hmc"] = "XYZ"  # 코드표에 없는 정답은 빠진다
+    ev.to_excel(tmp_path / "eval.xlsx", index=False)
+    main(["--config", str(cfg_path), "evaluate", "--input", str(tmp_path / "eval.xlsx")])
+    res = tmp_path / "eval" / "eval__model.xlsx"
+    summ = pd.read_excel(res, sheet_name="요약")
+    assert summ.loc[0, "구분"] == "전체" and summ.loc[0, "건수"] == 39 and summ.loc[0, "HMC 정확도"] > 0.8
+    assert set(summ.loc[summ["구분"] == "언어", "값"]) == {"ko", "en"}
+    info = pd.read_excel(res, sheet_name="모델", dtype=str)
+    assert "한국어만" in info.loc[info["항목"] == "번역 증강 파일", "값"].iloc[0]
+
     inbox, outbox = tmp_path / "inbox", tmp_path / "outbox"
     inbox.mkdir()
     new = pd.read_excel(fx / "train.xlsx", dtype=str).drop(columns=["hmc", "atc", "wuc"]).head(30)

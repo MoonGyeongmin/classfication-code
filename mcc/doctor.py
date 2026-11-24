@@ -1,4 +1,4 @@
-"""mcc doctor: 실행 전에 환경·모델·설정·데이터·LiteLLM을 점검한다.
+"""mcc doctor: 실행 전에 환경·모델·설정·데이터와 (쓰는 경우에만) LiteLLM을 점검한다.
 
 한 줄에 하나씩 [OK ] / [W11] / [E32] 처럼 찍고, 마지막 줄에 문제 코드만 모아 보여 준다.
 폐쇄망에서는 그 마지막 줄만 옮겨 적으면 된다. 오류(E)가 하나라도 있으면 종료 코드 1.
@@ -204,13 +204,18 @@ def run(cfg, deep=False, offline=False, report=None):
     else:
         print("[ - ] WUC 꺼짐(wuc.enabled: false)", flush=True)
 
+    # 번역 증강은 선택이다. 꺼져 있으면(기본) LiteLLM이 없어도 점검이 통과한다.
     t = cfg.get("translate") or {}
-    if offline:
+    use_translate = t.get("enabled", False) and t.get("backend", "api") == "api" and t.get("api")
+    use_embed_api = w.get("enabled") and w.get("embed_backend") == "api"
+    if not t.get("enabled", False):
+        print("[ - ] 번역 증강 꺼짐(translate.enabled: false). LiteLLM 없이 한국어 데이터만으로 학습", flush=True)
+    if offline and (use_translate or use_embed_api):
         print("[ - ] LiteLLM 점검 건너뜀(--offline)", flush=True)
-    else:
-        if t.get("backend", "api") == "api" and t.get("api"):
+    elif not offline:
+        if use_translate:
             r.check("translate_api", lambda: check_api("번역 API", t["api"], t["api"].get("model"), r))
-        if w.get("enabled") and w.get("embed_backend") == "api":
+        if use_embed_api:
             r.check("embed_api", lambda: check_api("임베딩 API", w["embed_api"], w["embed_api"].get("model"), r))
     return finish(r)
 

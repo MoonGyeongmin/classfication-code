@@ -30,6 +30,7 @@ def _cfg(tmp_path):
 def test_doctor_ok_and_api(tmp_path, monkeypatch, capsys):
     cfg, _ = _cfg(tmp_path)
     srv, url = fake_openai.start()
+    cfg["translate"]["enabled"] = True
     cfg["translate"]["api"].update(base_url=url, model="qwen-test")
     monkeypatch.setenv("LITELLM_API_KEY", "sk-test")
     assert doctor.run(cfg) == 0
@@ -47,11 +48,25 @@ def test_doctor_codes(tmp_path, monkeypatch, capsys):
     cfg["columns"]["data"]["defect"] = "결함내용"
     cfg["columns"]["data"]["action"] = "조치내용"
     cfg["model"]["encoder"] = str(tmp_path / "nope")
+    cfg["translate"]["enabled"] = True
     cfg["translate"]["api"]["base_url"] = "http://127.0.0.1:9/v1"
     assert doctor.run(cfg) == 1
     out = capsys.readouterr().out
     assert "[E20]" in out and "[E32]" in out and "[W50]" in out
     assert "결과 코드:" in out.splitlines()[-1]
+
+
+def test_doctor_without_litellm(tmp_path, monkeypatch, capsys):
+    """기본 설정(번역 증강 꺼짐)은 LiteLLM이 없어도, 키가 있어도 연결을 시도하지 않고 통과한다."""
+    cfg, _ = _cfg(tmp_path)
+    assert cfg["translate"]["enabled"] is False
+    cfg["translate"]["api"]["base_url"] = "http://127.0.0.1:9/v1"
+    monkeypatch.setenv("LITELLM_API_KEY", "sk-test")
+    assert doctor.run(cfg) == 0
+    out = capsys.readouterr().out
+    assert "번역 증강 꺼짐" in out and "W50" not in out and "E51" not in out
+    del cfg["translate"]["enabled"]  # 예전 설정 파일(enabled 항목 없음)도 꺼진 것으로 본다
+    assert doctor.run(cfg) == 0
 
 
 def test_train_raises_short_codes(tmp_path):
@@ -89,4 +104,16 @@ def test_rehearse(tmp_path, monkeypatch):
     cfg, fx = _cfg(tmp_path)
     monkeypatch.delenv("LITELLM_API_KEY", raising=False)
     rehearse.run(cfg, tmp_path / "rh")
-    assert len(list((tmp_path / "rh/결과").glob("*.xlsx"))) == 6
+    names = {f.name for f in (tmp_path / "rh/결과").glob("*.xlsx")}
+    assert len(names) == 6 and "2_번역증강.xlsx" not in names and "7_평가결과.xlsx" in names
+
+
+def test_rehearse_augment(tmp_path, monkeypatch):
+    """--augment이면 가짜 LiteLLM으로 번역 증강 단계까지 돌고 언어별 평가가 나온다."""
+    from mcc import rehearse
+    cfg, fx = _cfg(tmp_path)
+    monkeypatch.delenv("LITELLM_API_KEY", raising=False)
+    rehearse.run(cfg, tmp_path / "rh", augment=True)
+    assert len(list((tmp_path / "rh/결과").glob("*.xlsx"))) == 7
+    summary = pd.read_excel(tmp_path / "rh/결과/7_평가결과.xlsx", sheet_name="요약", dtype=str)
+    assert {"ko", "en", "th"} <= set(summary.loc[summary["구분"] == "언어", "값"])

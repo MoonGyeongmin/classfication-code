@@ -35,7 +35,7 @@ model:
 
 train:
   train_file: /data/train/fa50_ko.xlsx
-  augment_files: []        # 예: [/data/train/fa50_aug.xlsx] (mcc translate 결과)
+  augment_files: []        # 번역 증강을 쓸 때만. 예: [/data/train/fa50_aug.xlsx] (mcc translate 결과)
   output_dir: /work/models/hmc_atc
   epochs: 5
   batch_size: 32
@@ -46,7 +46,10 @@ train:
   label_smoothing: 0.05
   seed: 42
 
+# 번역 증강(선택). 기본은 꺼 두고 한국어 데이터만으로 학습한다(bge-m3가 다국어라 그대로도 외국어를 어느 정도 이해).
+# 외국어 정확도가 부족할 때만 enabled: true로 켜고 LiteLLM(Qwen 등) 주소를 적는다. 꺼져 있으면 doctor가 LiteLLM을 점검하지 않는다.
 translate:
+  enabled: false
   # api: 사내 LiteLLM 등 OpenAI 호환 API 호출(권장) / vllm: 이 컨테이너에서 모델을 직접 띄움
   backend: api
   api:

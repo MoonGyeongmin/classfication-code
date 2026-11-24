@@ -110,7 +110,7 @@ def _main(argv=None):
 
     sub.add_parser("train", help="HMC/ATC 모델 학습")
 
-    t = sub.add_parser("translate", help="로컬 LLM으로 학습 데이터 번역 증강")
+    t = sub.add_parser("translate", help="(선택) LiteLLM의 Qwen 등으로 학습 데이터 번역 증강. 기본 흐름에는 필요 없음")
     t.add_argument("--input", required=True)
     t.add_argument("--output", required=True)
     t.add_argument("--langs", nargs="*")
@@ -120,17 +120,23 @@ def _main(argv=None):
     pr.add_argument("--output", required=True)
     pr.add_argument("--model-dir")
 
+    ev = sub.add_parser("evaluate", help="정답(HMC/ATC)을 붙인 평가 파일로 모델 채점. lang 컬럼이 있으면 언어별 점수")
+    ev.add_argument("--input", required=True)
+    ev.add_argument("--output", help="결과 엑셀(기본: <train.output_dir 상위>/eval/<파일명>__<모델폴더명>.xlsx)")
+    ev.add_argument("--model-dir")
+
     b = sub.add_parser("batch", help="inbox 폴더의 새 파일을 모두 예측하고 요약 보고서를 만든다(주기 실행용)")
     b.add_argument("--inbox", required=True)
     b.add_argument("--outbox", required=True)
     b.add_argument("--model-dir")
 
-    d = sub.add_parser("doctor", help="환경·모델·설정·데이터·LiteLLM 점검. 문제를 짧은 코드(E32 등)로 보여 준다")
+    d = sub.add_parser("doctor", help="환경·모델·설정·데이터(번역 증강을 켰으면 LiteLLM도) 점검. 문제를 짧은 코드(E32 등)로 보여 준다")
     d.add_argument("--deep", action="store_true", help="인코더 가중치까지 실제로 불러 본다(수십 초)")
     d.add_argument("--offline", action="store_true", help="LiteLLM 연결 점검을 건너뛴다")
 
-    r = sub.add_parser("rehearse", help="가짜 데이터로 번역(가짜 API)→학습→예측→보고서를 끝까지 돌려 설치를 검증")
+    r = sub.add_parser("rehearse", help="가짜 데이터로 학습→평가→예측→보고서를 끝까지 돌려 설치를 검증")
     r.add_argument("--full", action="store_true", help="학습도 실제 bge-m3로 한다(RAM 16GB 이상, CPU면 수십 분)")
+    r.add_argument("--augment", action="store_true", help="번역 증강 단계(가짜 LiteLLM)도 넣는다")
     r.add_argument("--out", default="/work/rehearsal")
 
     args = p.parse_args(argv)
@@ -145,6 +151,9 @@ def _main(argv=None):
     elif args.cmd == "predict":
         from . import predict
         predict.run(cfg, args.input, args.output, args.model_dir)
+    elif args.cmd == "evaluate":
+        from . import evaluate
+        evaluate.run(cfg, args.input, args.output, args.model_dir)
     elif args.cmd == "batch":
         run_batch(cfg, Path(args.inbox), Path(args.outbox), args.model_dir)
     elif args.cmd == "doctor":
@@ -152,7 +161,7 @@ def _main(argv=None):
         return doctor.run(cfg, deep=args.deep, offline=args.offline)
     elif args.cmd == "rehearse":
         from . import rehearse
-        rehearse.run(cfg, Path(args.out), full=args.full)
+        rehearse.run(cfg, Path(args.out), full=args.full, augment=args.augment)
 
 
 def run_batch(cfg, inbox, outbox, model_dir=None):
